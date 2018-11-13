@@ -87,11 +87,15 @@ doit_fit = function(design, sigma2=NULL) {
   # calculate parameters
   GG    = GGfun(theta, theta, sigma2)
   GGinv = solve(GG)
+  GG2   = sqrt(GG)
   bb    = drop(solve(GG, sqrt(ff)))
   ee    = drop(1/diag(GGinv) * GGinv %*% sqrt(ff))
+  d_ij  = tcrossprod(bb) * GG2
+  sum_d_ij = sum(d_ij)
 
   ans = list(GGfun=GGfun, theta=theta, sigma2=sigma2, 
-             ff=ff, bb=bb, GG=GG, GG2=sqrt(GG), ee=ee, GGinv=GGinv)
+             ff=ff, bb=bb, GG=GG, GG2=GG2, ee=ee, GGinv=GGinv,
+             d_ij=d_ij, sum_d_ij = sum_d_ij)
 
   class(ans) = c('doit', class(ans))
   return(ans)
@@ -158,17 +162,20 @@ doit_update = function(doit, design_new) with(doit, {
   hh_        = GGinv %*% gg_
   GGinv_up   = rbind(cbind(GGinv + dd_*tcrossprod(hh_), - dd_*hh_),
                      cbind(-dd_ * t(hh_), dd_))
-  ff_up = c(ff, design_new$f)
-  bb_up = drop(GGinv_up %*% sqrt(ff_up))
-  ee_up = drop(1/diag(GGinv_up) * GGinv_up %*% sqrt(ff_up))
+  ff_up   = c(ff, design_new$f)
+  bb_up   = drop(GGinv_up %*% sqrt(ff_up))
+  ee_up   = drop(1/diag(GGinv_up) * GGinv_up %*% sqrt(ff_up))
+  d_ij_up = tcrossprod(bb_up) * GG2_up
   # write new object
-  doit$theta = theta_up
-  doit$ff    = ff_up
-  doit$bb    = bb_up
-  doit$GG    = GG_up
-  doit$GG2   = GG2_up
-  doit$ee    = ee_up
-  doit$GGinv = GGinv_up
+  doit$theta    = theta_up
+  doit$ff       = ff_up
+  doit$bb       = bb_up
+  doit$GG       = GG_up
+  doit$GG2      = GG2_up
+  doit$ee       = ee_up
+  doit$GGinv    = GGinv_up
+  doit$d_ij     = d_ij_up
+  doit$sum_d_ij = sum(d_ij_up)
   return(doit)
 })
 
@@ -185,8 +192,6 @@ doit_update = function(doit, design_new) with(doit, {
 #'
 doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
   if (is.null(theta_eval)) theta_eval = theta[, k]
-  d_ij = tcrossprod(bb) * GG2
-  sum_d_ij = sum(d_ij)
   nu_ij = 0.5 * outer(theta[,k], theta[,k], '+')
   sd_ = sqrt(sigma2[k]/2)
   ans = sapply(theta_eval, function(tt) {
@@ -219,10 +224,8 @@ doit_marginals = function(doit, theta_eval=NULL) {
 #' @export
 #'
 doit_expectation = function(doit) with(doit, {
-  d_ij = tcrossprod(bb) * GG2
-  sum_d_ij = sum(d_ij)
   nu_ij = purrr::map(colnames(theta), ~0.5 * outer(theta[,.], theta[,.], '+'))
-  return(purrr::map_dbl(nu_ij, ~sum(d_ij * .) / sum(d_ij)))
+  return(purrr::map_dbl(nu_ij, ~sum(d_ij * .) / sum_d_ij))
 })
 
 
@@ -233,8 +236,6 @@ doit_expectation = function(doit) with(doit, {
 #' @export
 #'
 doit_variance = function(doit) with(doit, {
-  d_ij = tcrossprod(bb) * GG2
-  sum_d_ij = sum(d_ij)
   nu_ij = purrr::map(colnames(theta), ~0.5 * outer(theta[,.], theta[,.], '+'))
   dd = ncol(theta)
   kk = expand.grid(ii = 1:dd, jj = 1:dd) 

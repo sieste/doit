@@ -34,7 +34,7 @@ improvement:
 - k in doit_marginal should accept parameter name 
 - test that doit_marginal behaves as expected with different settings for
   theta_eval
-- make d_ij and nu_ij part of doit object
+- make nu_ij part of doit object
 - add @seealso tags
 - add links to roxygen blocks (had/r-pkgs/man)
 - implement examples
