@@ -1,0 +1,39 @@
+```{r}
+library(doit)
+library(lhs)
+library(tidyverse)
+
+h = function(r) {
+  p = 1/(1+exp(-r))
+  dbinom(1, 1, p) * dnorm(r, 1, 4)
+}
+
+m = 10
+design = data.frame(x=seq(-10, 20, len=m))
+design$f = sapply(design$x, h)
+
+sigma2 = doit_estimate_sigma(design)
+doit = doit_fit(design, sigma2=sigma2)
+theta_eval = data.frame(x = seq(-15,25,.1))
+doit_out = doit_approx(doit, theta_eval)
+
+ggplot() + 
+geom_point(data=design, aes(x=x, y=0), pch=1, cex=2) +
+geom_line(data=doit_out, aes(x=x, y=ee, colour=sqrt(vv))) 
+
+x_n = doit_propose_new(doit)
+design_new = mutate(x_n, f=h(x))
+doit = doit_update(doit, design_new)
+
+doit_out = doit_approx(doit, theta_eval)
+ggplot() + 
+geom_point(data=design_new, aes(x=x, y=0), pch=1, cex=2, col='red') +
+geom_point(data=design, aes(x=x, y=0), pch=1, cex=2) +
+geom_line(data=doit_out, aes(x=x, y=ee, colour=sqrt(vv))) 
+
+p_theta = doit_marginals(doit)
+ggplot(p_theta) + geom_point(aes(x=theta, y=posterior)) + facet_wrap(~par)
+
+doit_variance(doit)
+doit_expectation(doit)
+```
