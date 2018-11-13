@@ -1,0 +1,120 @@
+```{r}
+library(doit)
+library(tidyverse)
+library(mvtnorm)
+library(viridis)
+library(lhs)
+
+f = function(theta) {
+  theta = as.matrix(theta)
+  theta = matrix(theta, ncol=2) 
+  x = cbind(theta[ , 1, drop=FALSE], 
+            theta[ , 2, drop=FALSE] + 0.03 * theta[ , 1, drop=FALSE] ^ 2 - 3)
+  dmvnorm(x, c(0,0), diag(c(100, 1)))
+}
+
+# true solution
+df_true = crossing(theta1 = seq(-22, 22, .5), theta2 = seq(-12,7,.5)) %>%
+  mutate(f = f(cbind(theta1,theta2)))
+
+ggplot(df_true) + 
+  geom_raster(aes(x=theta1, y=theta2, fill=f)) + 
+  geom_contour(aes(x=theta1, y=theta2, z=f), col='black', bins=10) + 
+  scale_fill_viridis()
+
+
+# latin hypercube design
+set.seed(123)
+lhs = maximinLHS(n=100, k=2) %>% 
+  as_data_frame %>% 
+  setNames(c('theta1', 'theta2')) %>%
+  mutate(theta1 = theta1 * 40 - 20, 
+         theta2 = theta2 * 15 - 10)
+design = lhs %>% mutate(f = f(cbind(theta1, theta2)))
+
+ggplot(design) + 
+  geom_point(aes(x=theta1, y=theta2, colour=f), cex=3) + 
+  scale_colour_gradient2()
+
+
+# estimate optimal kernel width
+w = doit_estimate_w(design)
+print(w)
+
+# fit doit approximation
+doit = doit_fit(design, w=w)
+
+# approximate function on full grid
+theta_eval = df_true %>% select(theta1, theta2)
+df_approx = doit_approx(doit, theta_eval)
+
+
+# plot true function and approximation
+plot_df = bind_rows(df_approx %>% select(-vv) %>% 
+                                  rename(f=ee) %>% 
+                                  mutate(type='approx'),
+                    df_true %>% mutate(type='true'))
+ggplot(plot_df, aes(x=theta1, y=theta2)) + 
+  geom_raster(aes(fill=f)) + 
+  facet_wrap(~type) +
+  geom_point(data=design, pch=1, colour='white') + 
+  scale_colour_viridis() + scale_fill_viridis()
+
+# plot prediction variance
+ggplot(df_approx, aes(x=theta1, y=theta2)) + 
+  geom_raster(aes(fill=vv)) + 
+  geom_point(data=design, pch=1, colour='white') + 
+  scale_colour_viridis() + scale_fill_viridis()
+
+
+# illustrate new design point compared to predictive variance
+theta_n = doit_propose_new(doit)
+print(theta_n)
+ggplot(df_approx, aes(x=theta1, y=theta2)) + 
+  geom_raster(aes(fill=vv)) + 
+  scale_fill_viridis() +
+  geom_point(data=design, pch=1, col='white') +
+  geom_point(data=theta_n, pch=16, cex=3, col='red')
+
+# save for later
+doit_old = doit
+design_old = design
+
+# add 75 new points to the design, but only re-optimise kernel width every 10th
+# iteration
+design = design_old
+doit = doit_old
+n_new = 75
+for (jj in 1:n_new) {
+  theta_n    = doit_propose_new(doit)
+  design_add = theta_n %>% mutate(f = f(theta_n))
+  design = bind_rows(design, design_add)
+  if (jj %% 1 == 0) {
+    w = doit_estimate_w(design, w_0=doit$w)
+    doit = doit_fit(design, w=w)
+  } else { 
+    doit = doit_update(doit, design_add)
+  }
+}
+
+# plot new approximation, highlight the added design points
+df_approx = doit_approx(doit, theta_eval)
+ggplot(mapping=aes(x=theta1, y=theta2)) +
+  geom_raster(data=df_approx %>% rename(f_approx=ee), aes(fill=f_approx)) + 
+  geom_point(data=design %>% mutate(wave=rep(c('first','second'),c(n()-n_new, n_new))),
+             mapping=aes(pch=wave, colour=wave), cex=3) + 
+  scale_fill_viridis()
+
+
+# plot marginal posterior distributions
+df_marg = doit_marginals(doit, theta_eval)
+ggplot(df_marg, aes(x=theta, y=posterior)) + 
+  geom_point() + geom_line() + 
+  facet_wrap(~par, scales='free')
+
+# posterior expecation and variance
+doit_expectation(doit)
+doit_variance(doit)
+```
+
+
