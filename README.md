@@ -1,25 +1,32 @@
-# Implementation of the DoIt method 
+# Implementation of the design of experiments-based interpolation technique (DoIt)
 
-## Papers
-
-**Bayesian Computation Using Design of Experiments-Based Interpolation
-Technique**, Joseph, 2012, Technometrics, 10.1080/00401706.2012.680399
-
-improvement:
-
-**A Note on Nonnegative {DoIt} Approximation**, Joseph, 2012, Technometrics,
-10.1080/00401706.2012.759154
-
-## The method
-
-- essentially an improvement of the Laplace approximation 
-- approximate target density by mixture of gaussian kernels at appropriately chosen design points
-- can calculate normalisation constant, expectation, variance, marginals
-- use design-of-experiments technique to select new design points
+This R package is an implementation of the design of experiments-based
+interpolation technique (DoIt, Joseph 2012) for approximate Bayesian
+computations. The method uses evaluations of the unnormalised posterior density
+at a space-filling design of parameter values. Normalisation of the posterior
+is achieved by approximating the target density by a weighted sum of Gaussian
+kernels. DoIt allows for approximate calculation of marginal posterior
+densities, posterior expecations and posterior variances. The package contains
+functions to optimally choose additional design points, and to calculate the
+optimal kernel bandwith by efficient cross validation.
 
 
+**References**:
 
-## Demo Files
+- **Bayesian Computation Using Design of Experiments-Based Interpolation
+  Technique**, Joseph, 2012, Technometrics, 10.1080/00401706.2012.680399
+- **A Note on Nonnegative {DoIt} Approximation**, Joseph, 2012, Technometrics,
+  10.1080/00401706.2012.759154
+
+
+## Installation
+
+```r
+devtools::install_github('sieste/doit')
+```
+
+
+## Vignettes
 
 - [doit1-1d.md](old_stuff/doit1-1d.md): 1d example from paper 1
 - [doit2-1d.md](old_stuff/doit2-1d.md): 1d example from paper 2, solving the negativity problem
@@ -31,8 +38,8 @@ improvement:
 
 ## Todo
 
-- test that doit_marginal behaves as expected with different settings for
-  theta_eval
+- test that `doit_marginal()` behaves as expected with different settings for
+  `theta_eval`
 - add @seealso tags
 - add links to roxygen blocks (had/r-pkgs/man)
 - add example data
