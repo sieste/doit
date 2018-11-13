@@ -12,7 +12,7 @@ Description: This package is an implementation of the design of
     posterior expecations and variances. The package contains functions to
     optimally choose additional design points, and to calculate the optimal kernel
     bandwith by efficient cross validation.
-Imports: dplyr, purrr
-Suggests: lhs, ggplot2
+Imports: 
+Suggests: lhs, ggplot2, dplyr
 License: GPL-3
 RoxygenNote: 6.0.1

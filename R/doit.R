@@ -17,7 +17,7 @@
 doit_estimate_sigma = function(design, sigma_0=NULL, optim_control=NULL) {
   stopifnot(nrow(design) > 1)
   m     = nrow(design)
-  theta = as.matrix(dplyr::select(design, -f))
+  theta = as.matrix(design[, names(design) != 'f', drop=FALSE])
   dd    = ncol(theta)
   ff    = design$f
 
@@ -65,7 +65,7 @@ doit_estimate_sigma = function(design, sigma_0=NULL, optim_control=NULL) {
 #'
 doit_fit = function(design, sigma2=NULL) {
   m     = nrow(design)
-  theta = as.matrix(dplyr::select(design, -f))
+  theta = as.matrix(design[, names(design) != 'f', drop=FALSE])
   dd    = ncol(theta)
   ff    = design$f
 
@@ -158,7 +158,7 @@ doit_propose_new = function(doit) with(doit, {
 #'
 doit_update = function(doit, design_new) with(doit, {
   design_new = design_new[1, ] 
-  theta_new  = as.matrix(dplyr::select(design_new, -f))
+  theta_new  = as.matrix(design_new[, names(design_new) != 'f', drop=FALSE])
   theta_up   = rbind(theta, theta_new)
   gg_        = GGfun(theta, theta_new, sigma2)
   gg2_       = sqrt(gg_)
@@ -218,7 +218,10 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
 #' @export
 #'
 doit_marginals = function(doit, theta_eval=NULL) {
-  purrr::map_df(1:ncol(doit$theta), ~doit_marginal(doit, ., theta_eval))
+  margs = lapply(1:ncol(doit$theta), function(kk) 
+                 doit_marginal(doit, kk, theta_eval))
+  margs = do.call(rbind, margs)
+  return(margs)
 }
 
 
@@ -230,8 +233,9 @@ doit_marginals = function(doit, theta_eval=NULL) {
 #' @export
 #'
 doit_expectation = function(doit) with(doit, {
-  nu_ij = purrr::map(colnames(theta), ~0.5 * outer(theta[,.], theta[,.], '+'))
-  return(purrr::map_dbl(nu_ij, ~sum(d_ij * .) / sum_d_ij))
+  nu_ij = lapply(as.data.frame(theta), function(tt) 0.5 * outer(tt, tt, '+'))
+  e_theta = sapply(nu_ij, function(nu) sum(d_ij * nu) / sum_d_ij)
+  return(e_theta)
 })
 
 
@@ -242,15 +246,16 @@ doit_expectation = function(doit) with(doit, {
 #' @export
 #'
 doit_variance = function(doit) with(doit, {
-  nu_ij = purrr::map(colnames(theta), ~0.5 * outer(theta[,.], theta[,.], '+'))
+  nu_ij = lapply(as.data.frame(theta), function(tt) 0.5 * outer(tt, tt, '+'))
   dd = ncol(theta)
   kk = expand.grid(ii = 1:dd, jj = 1:dd) 
-  kk = dplyr::filter(kk, jj >= ii) 
-  kk = dplyr::mutate(kk, v = purrr::map2_dbl(ii, jj, 
-              ~ sum(d_ij * nu_ij[[.x]] * nu_ij[[.y]]) / sum_d_ij))
+  kk = kk[with(kk, jj>=ii), ]
+  vv = sapply(1:nrow(kk), function(ll) 
+         sum(d_ij * nu_ij[[ kk[ll, 'ii'] ]] * nu_ij[[ kk[ll, 'jj'] ]]) / 
+         sum_d_ij)
   v_theta = matrix(0, dd, dd)
   for (l in 1:nrow(kk)) {
-    v_theta[kk[l,'ii'], kk[l,'jj']] = v_theta[kk[l,'jj'], kk[l,'ii']] = kk[l,'v']
+    v_theta[kk[l,'ii'], kk[l,'jj']] = v_theta[kk[l,'jj'], kk[l,'ii']] = vv[l]
   }
   rownames(v_theta) = colnames(v_theta) = colnames(theta)
   return(v_theta)
