@@ -12,8 +12,8 @@ m = 10
 design = data.frame(x=seq(-10, 20, len=m))
 design$f = sapply(design$x, h)
 
-sigma2 = doit_estimate_sigma(design)
-doit = doit_fit(design, sigma2=sigma2)
+w = doit_estimate_w(design)
+doit = doit_fit(design, w=w)
 theta_eval = data.frame(x = seq(-15,25,.1))
 doit_out = doit_approx(doit, theta_eval)
 

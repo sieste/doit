@@ -6,7 +6,7 @@
 #' @param design A data frame of design points and corresponding function
 #' evaluations. Must contain a column named `f` with function values. The other
 #' columns are treated as design points.
-#' @param sigma_0 Starting point for the optimisation routine. Either NULL
+#' @param w_0 Starting point for the optimisation routine. Either NULL
 #' (default) in wwhich case an educated guess is made, or otherwise a vector of
 #' the same dimension as the parameter space. 
 #' @param optim_control A list passed to `optimize` (for 1d problems) or
@@ -14,39 +14,40 @@
 #' @return A vector of optimal kernel widths.
 #' @export
 #'
-doit_estimate_sigma = function(design, sigma_0=NULL, optim_control=NULL) {
+doit_estimate_w = function(design, w_0=NULL, optim_control=NULL) {
   stopifnot(nrow(design) > 1)
   m     = nrow(design)
   theta = as.matrix(design[, names(design) != 'f', drop=FALSE])
   dd    = ncol(theta)
   ff    = design$f
 
-  GGfun = function(sigma2) {
+  GGfun = function(w) {
     mat_ = matrix(0, nrow=m, ncol=m)
     for (ii in seq_len(dd)) {    
-      mat_ = mat_ - outer(theta[,ii], theta[,ii], '-')^2 / (2 * sigma2[ii])
+      mat_ = mat_ - outer(theta[,ii], theta[,ii], '-')^2 / (2 * w[ii])
     }
     return(drop(exp(mat_)))
   }
 
   # leave-one-out MSE as function of the kernel width
-  wmscv = function(sigma2) {
-    GGinv_ = solve(GGfun(sigma2))
+  wmscv = function(w) {
+    GGinv_ = solve(GGfun(w))
     ee_    = drop(1/diag(GGinv_) * GGinv_ %*% sqrt(ff))
     wmscv  = sum(ee_ * diag(GGinv_) * ee_) / m
     return(wmscv)
  }
 
-  # minimise wmscv wrt sigma2, use `optimize` for 1d and `optim` for >1d
+  # minimise wmscv wrt w, use `optimize` for 1d and `optim` for >1d
   if (dd == 1) {
-    sigma2 = optimize(wmscv, c(1e-6, diff(range(theta))))$minimum
+    w = optimize(wmscv, c(1e-6, diff(range(theta))))$minimum
   } else {
-    if (is.null(sigma_0)) { # use component-wise silvermans rule as starting point 
-      sigma_0 = 1.06 * m^(-.2) * apply(theta, 2, sd)
+    if (is.null(w_0)) { # use component-wise silvermans rule as starting point 
+      w_0 = 1.06 * m^(-.2) * apply(theta, 2, sd)
     }
-    sigma2 = optim(sigma_0, wmscv, control=optim_control)$par
+    w = optim(w_0, wmscv, control=optim_control)$par
   }
-  return(sigma2)
+  names(w) = colnames(theta)
+  return(w)
 }
 
 
@@ -58,34 +59,34 @@ doit_estimate_sigma = function(design, sigma_0=NULL, optim_control=NULL) {
 #' @param design A data frame of design points and corresponding function
 #' evaluations. Must contain a column named `f` with function values. The other
 #' columns are treated as design points.
-#' @param sigma2 vector of variances used for the Gaussian kernels. If `NULL`
-#' (the default), sigma2 is calculated by `doit_estimate_sigma`.
+#' @param w vector of variances used for the Gaussian kernels. If `NULL`
+#' (the default), `w` is calculated by `doit_estimate_w`.
 #' @return An object of class `doit` used in further calculations.
 #' @export
 #'
-doit_fit = function(design, sigma2=NULL) {
+doit_fit = function(design, w=NULL) {
   m     = nrow(design)
   theta = as.matrix(design[, names(design) != 'f', drop=FALSE])
   dd    = ncol(theta)
   ff    = design$f
 
-  GGfun = function(xx, yy, sigma2) {
+  GGfun = function(xx, yy, w) {
     if (is.null(dim(xx))) xx = matrix(xx, nrow=1)
     if (is.null(dim(yy))) yy = matrix(yy, nrow=1)
-    stopifnot(ncol(xx) == ncol(yy), ncol(xx) == length(sigma2))
+    stopifnot(ncol(xx) == ncol(yy), ncol(xx) == length(w))
     mat_ = matrix(0, nrow=nrow(xx), ncol=nrow(yy))
-    for (ii in seq_along(sigma2)) {    
-      mat_ = mat_ - outer(xx[,ii], yy[,ii], '-')^2 / (2 * sigma2[ii])
+    for (ii in seq_along(w)) {    
+      mat_ = mat_ - outer(xx[,ii], yy[,ii], '-')^2 / (2 * w[ii])
     }
     return(drop(exp(mat_)))
   }
   
-  if(is.null(sigma2)) {
-    sigma2 = doit_estimate_sigma(design)
+  if(is.null(w)) {
+    w = doit_estimate_w(design)
   }
 
   # calculate parameters
-  GG    = GGfun(theta, theta, sigma2)
+  GG    = GGfun(theta, theta, w)
   GGinv = solve(GG)
   GG2   = sqrt(GG)
   bb    = drop(solve(GG, sqrt(ff)))
@@ -93,7 +94,7 @@ doit_fit = function(design, sigma2=NULL) {
   d_ij  = tcrossprod(bb) * GG2
   sum_d_ij = sum(d_ij)
 
-  ans = list(GGfun=GGfun, theta=theta, sigma2=sigma2, 
+  ans = list(GGfun=GGfun, theta=theta, w=w, 
              ff=ff, bb=bb, GG=GG, GG2=GG2, ee=ee, GGinv=GGinv,
              d_ij=d_ij, sum_d_ij = sum_d_ij)
 
@@ -115,9 +116,9 @@ doit_fit = function(design, sigma2=NULL) {
 #'
 doit_approx = function(doit, theta_eval) with(doit, {
   bGG2b_ = drop(bb %*% GG2 %*% bb)
-  gg_    = GGfun(theta_eval, theta, sigma2)
+  gg_    = GGfun(theta_eval, theta, w)
   ggbb2_ = drop(gg_ %*% bb)^2
-  ee_    = ggbb2_ / (sqrt(prod(pi*sigma2)) * bGG2b_)
+  ee_    = ggbb2_ / (sqrt(prod(pi*w)) * bGG2b_)
   vv_    = ggbb2_ * drop(1 - rowSums(gg_ * (gg_ %*% GGinv)))
   return(as.data.frame(cbind(theta_eval, ee=ee_, vv=pmax(0, vv_))))
 })
@@ -131,7 +132,7 @@ doit_approx = function(doit, theta_eval) with(doit, {
 #'
 doit_propose_new = function(doit) with(doit, {
   fn = function(r) {
-    gg = GGfun(r, theta, sigma2)
+    gg = GGfun(r, theta, w)
     -1 * sum(bb * gg)^2 * drop(1 - gg %*% GGinv %*% gg)
   }
   vv =  (sqrt(ff) - ee)^2 / diag(GGinv)
@@ -160,7 +161,7 @@ doit_update = function(doit, design_new) with(doit, {
   design_new = design_new[1, ] 
   theta_new  = as.matrix(design_new[, names(design_new) != 'f', drop=FALSE])
   theta_up   = rbind(theta, theta_new)
-  gg_        = GGfun(theta, theta_new, sigma2)
+  gg_        = GGfun(theta, theta_new, w)
   gg2_       = sqrt(gg_)
   GG_up      = rbind(cbind(GG, gg_), cbind(t(gg_), 1))
   GG2_up     = rbind(cbind(GG2, gg2_), cbind(t(gg2_), 1))
@@ -197,9 +198,11 @@ doit_update = function(doit, design_new) with(doit, {
 #' @export
 #'
 doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
+  if (is.numeric(k)) stopifnot(k > 0, k <= ncol(theta))
+  if (is.character(k)) stopifnot(k %in% colnames(theta))
   if (is.null(theta_eval)) theta_eval = theta[, k]
   nu_ij = 0.5 * outer(theta[,k], theta[,k], '+')
-  sd_ = sqrt(sigma2[k]/2)
+  sd_ = sqrt(w[k]/2)
   ans = sapply(theta_eval, function(tt) {
     phi_ij = dnorm(tt, nu_ij, sd_)
     return(sum(d_ij * phi_ij) / sum_d_ij)

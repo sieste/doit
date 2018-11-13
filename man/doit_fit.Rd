@@ -4,15 +4,15 @@
 \alias{doit_fit}
 \title{Fit a DoIt object}
 \usage{
-doit_fit(design, sigma2 = NULL)
+doit_fit(design, w = NULL)
 }
 \arguments{
 \item{design}{A data frame of design points and corresponding function
 evaluations. Must contain a column named `f` with function values. The other
 columns are treated as design points.}
 
-\item{sigma2}{vector of variances used for the Gaussian kernels. If `NULL`
-(the default), sigma2 is calculated by `doit_estimate_sigma`.}
+\item{w}{vector of variances used for the Gaussian kernels. If `NULL`
+(the default), `w` is calculated by `doit_estimate_w`.}
 }
 \value{
 An object of class `doit` used in further calculations.

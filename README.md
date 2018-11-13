@@ -37,14 +37,11 @@ improvement:
 - make nu_ij part of doit object
 - add @seealso tags
 - add links to roxygen blocks (had/r-pkgs/man)
-- implement examples
 - add example data
 - replace `crossing` by `expand`
 - in vignette plot truth and approximation side-by-side instead of contour over raster
 - add argument `near` to specify starting point in `doit_propose_new`
-- `doit_expectation` should return a named vector
 - write vignettes for 1d and 2d function, using the package functions
-- consistent names `sigma` vs `sigma2` vs `w` etc
 - make `GGfun` more efficient by accounting for symmetry
 - in `doit_fit` and `doit_update` check for duplicate design points
 
