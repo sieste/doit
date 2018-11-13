@@ -30,8 +30,8 @@ doit_estimate_w = function(design, w_0=NULL, optim_control=NULL) {
   }
 
   # leave-one-out MSE as function of the kernel width
-  wmscv = function(w) {
-    GGinv_ = solve(GGfun(w))
+  wmscv = function(log_w) {
+    GGinv_ = solve(GGfun(exp(log_w)))
     ee_    = drop(1/diag(GGinv_) * GGinv_ %*% sqrt(ff))
     wmscv  = sum(ee_ * diag(GGinv_) * ee_) / m
     return(wmscv)
@@ -44,7 +44,8 @@ doit_estimate_w = function(design, w_0=NULL, optim_control=NULL) {
     if (is.null(w_0)) { # use component-wise silvermans rule as starting point 
       w_0 = 1.06 * m^(-.2) * apply(theta, 2, sd)
     }
-    w = optim(w_0, wmscv, control=optim_control)$par
+    opt = optim(log(w_0), wmscv, control=optim_control)
+    w   = exp(opt$par)
   }
   names(w) = colnames(theta)
   return(w)
@@ -117,6 +118,7 @@ doit_fit = function(design, w=NULL) {
 #' @export
 #'
 doit_approx = function(doit, theta_eval) with(doit, {
+  theta_eval = as.matrix(theta_eval)
   bGG2b_ = drop(bb %*% GG2 %*% bb)
   gg_    = GGfun(theta_eval, theta, w)
   ggbb2_ = drop(gg_ %*% bb)^2
