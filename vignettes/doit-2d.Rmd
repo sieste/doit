@@ -1,3 +1,23 @@
+---
+title: "DoIt for a 2-d example"
+author: "Stefan Siegert"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{doit-2d-example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  fig.path = paste('figure/', knitr::current_input(), '-figs/', sep=''),
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+
 ```{r}
 library(doit)
 library(tidyverse)
