@@ -86,17 +86,19 @@ doit_fit = function(design, w=NULL) {
   }
 
   # calculate parameters
-  GG    = GGfun(theta, theta, w)
-  GGinv = solve(GG)
-  GG2   = sqrt(GG)
-  bb    = drop(solve(GG, sqrt(ff)))
-  ee    = drop(1/diag(GGinv) * GGinv %*% sqrt(ff))
-  d_ij  = tcrossprod(bb) * GG2
+  GG       = GGfun(theta, theta, w)
+  GGinv    = solve(GG)
+  GG2      = sqrt(GG)
+  bb       = drop(solve(GG, sqrt(ff)))
+  ee       = drop(1/diag(GGinv) * GGinv %*% sqrt(ff))
+  d_ij     = tcrossprod(bb) * GG2
   sum_d_ij = sum(d_ij)
+  nu_ij    = lapply(as.data.frame(theta), function(tt) 
+                    0.5 * outer(tt, tt, '+'))
 
   ans = list(GGfun=GGfun, theta=theta, w=w, 
              ff=ff, bb=bb, GG=GG, GG2=GG2, ee=ee, GGinv=GGinv,
-             d_ij=d_ij, sum_d_ij = sum_d_ij)
+             d_ij=d_ij, sum_d_ij=sum_d_ij, nu_ij=nu_ij)
 
   class(ans) = c('doit', class(ans))
   return(ans)
@@ -183,6 +185,8 @@ doit_update = function(doit, design_new) with(doit, {
   doit$GGinv    = GGinv_up
   doit$d_ij     = d_ij_up
   doit$sum_d_ij = sum(d_ij_up)
+  doit$nu_ij    = lapply(as.data.frame(theta_up), function(tt) 
+                         0.5 * outer(tt, tt, '+'))
   return(doit)
 })
 
@@ -204,10 +208,9 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
     k = which(colnames(theta) == k)
   }
   if (is.null(theta_eval)) theta_eval = theta[, k]
-  nu_ij = 0.5 * outer(theta[,k], theta[,k], '+')
   sd_ = sqrt(w[k]/2)
   ans = sapply(theta_eval, function(tt) {
-    phi_ij = dnorm(tt, nu_ij, sd_)
+    phi_ij = dnorm(tt, nu_ij[[k]], sd_)
     return(sum(d_ij * phi_ij) / sum_d_ij)
   })
   return(data_frame(par=colnames(theta)[k], theta=theta_eval, posterior=ans))
@@ -239,7 +242,6 @@ doit_marginals = function(doit, theta_eval=NULL) {
 #' @export
 #'
 doit_expectation = function(doit) with(doit, {
-  nu_ij = lapply(as.data.frame(theta), function(tt) 0.5 * outer(tt, tt, '+'))
   e_theta = sapply(nu_ij, function(nu) sum(d_ij * nu) / sum_d_ij)
   return(e_theta)
 })
@@ -252,13 +254,14 @@ doit_expectation = function(doit) with(doit, {
 #' @export
 #'
 doit_variance = function(doit) with(doit, {
-  nu_ij = lapply(as.data.frame(theta), function(tt) 0.5 * outer(tt, tt, '+'))
   dd = ncol(theta)
   kk = expand.grid(ii = 1:dd, jj = 1:dd) 
   kk = kk[with(kk, jj>=ii), ]
-  vv = sapply(1:nrow(kk), function(ll) 
-         sum(d_ij * nu_ij[[ kk[ll, 'ii'] ]] * nu_ij[[ kk[ll, 'jj'] ]]) / 
-         sum_d_ij)
+  vv = sapply(1:nrow(kk), function(ll) {
+         ii_ = kk[ll, 'ii']
+         jj_ = kk[ll, 'jj']
+         sum(d_ij * nu_ij[[ ii_ ]] * nu_ij[[ jj_ ]]) / sum_d_ij
+       })
   v_theta = matrix(0, dd, dd)
   for (l in 1:nrow(kk)) {
     v_theta[kk[l,'ii'], kk[l,'jj']] = v_theta[kk[l,'jj'], kk[l,'ii']] = vv[l]
