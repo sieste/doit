@@ -13,6 +13,12 @@ Description: This package is an implementation of the design of
     optimally choose additional design points, and to calculate the optimal kernel
     bandwith by efficient cross validation.
 Imports: 
-Suggests: lhs, ggplot2, dplyr
+Suggests: dplyr, 
+          ggplot2, 
+          knitr, 
+          lhs, 
+          rmarkdown
 License: GPL-3
 RoxygenNote: 6.0.1
+VignetteBuilder: knitr
+
