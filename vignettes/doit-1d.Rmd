@@ -19,43 +19,128 @@ knitr::opts_chunk$set(
 ```
 
 
-
-```{r}
+```{r, echo=TRUE, eval=FALSE}
 library(doit)
 library(lhs)
 library(tidyverse)
+```
+```{r, echo=FALSE, eval=TRUE}
+suppressPackageStartupMessages(library(doit))
+suppressPackageStartupMessages(library(lhs))
+suppressPackageStartupMessages(library(tidyverse))
+```
 
+## The target distribution
+
+We use the example model from Joseph (2012), namely a Bernoulli likelihood with
+logit link function and a Normal prior: 
+
+- $r \sim N(\mu, \tau^2)$
+- $p = \frac{1}{1+exp(-r)}$
+- $y \sim Ber(p)$
+- where $y=1$, $\mu = 1$, $\tau = 4$
+
+The unnormalised posterior is given by
+
+```{r}
 h = function(r) {
   p = 1/(1+exp(-r))
   dbinom(1, 1, p) * dnorm(r, 1, 4)
 }
+```
 
-m = 10
-design = data.frame(x=seq(-10, 20, len=m))
+
+## Design points
+
+We evaluate the unnormalised posterior at 10 equally spaced design points:
+
+```{r}
+design = data.frame(x=seq(-10, 20, len=10))
 design$f = sapply(design$x, h)
+```
 
+
+## Estimate the optimal kernel width
+
+
+The DoIt method works by approximating the target density by a weighted sum of
+Normal distributions. The optimatl variance parameter `w` of the Normal
+distributions is estimated by the function `doit_estimate_w()`:
+
+```{r}
 w = doit_estimate_w(design)
+```
+
+
+## Evaluate the DoIt approximation
+
+The function `doit_fit()` estimates the parameters of the DoIt method and saves
+them in an object of class `doit`:
+
+```{r}
 doit = doit_fit(design, w=w)
+```
+
+We specify the parameter values at which we want to approximate the target
+posterior and use `doit_approx()` to calculate the approximation:
+
+```{r}
 theta_eval = data.frame(x = seq(-15,25,.1))
 doit_out = doit_approx(doit, theta_eval)
+```
 
+The approximation function returns the estimated value `ee` and the estimation
+error variance `vv`:
+
+```{r}
+head(doit_out)
+```
+
+The output of `doit_approx()` works nicely with the `ggplot2` package:
+
+```{r plot-doit-approx}
 ggplot() + 
-geom_point(data=design, aes(x=x, y=0), pch=1, cex=2) +
-geom_line(data=doit_out, aes(x=x, y=ee, colour=sqrt(vv))) 
+geom_line(data=doit_out, aes(x=x, y=ee, colour=sqrt(vv))) +
+geom_point(data=design, aes(x=x, y=0), pch=1, cex=2)
+```
 
+
+## Add more design points
+
+To extend the existing design, we use `doit_propose_new()` to choose a new
+design point where the current estimation variance is particularly high:
+
+```{r}
 x_n = doit_propose_new(doit)
 design_new = mutate(x_n, f=h(x))
-doit = doit_update(doit, design_new)
+```
 
+Instead of using `doit_fit()` again on the original design plus additional new
+point, we can use the `doit_update()` function which is more efficient. Note
+that the kernel width `w` is not updated:
+
+```{r}
+doit = doit_update(doit, design_new)
+```
+
+We plot the new approximation and highlight the added design point:
+
+```{r plot-doit-approx-update}
 doit_out = doit_approx(doit, theta_eval)
 ggplot() + 
 geom_point(data=design_new, aes(x=x, y=0), pch=1, cex=2, col='red') +
 geom_point(data=design, aes(x=x, y=0), pch=1, cex=2) +
 geom_line(data=doit_out, aes(x=x, y=ee, colour=sqrt(vv))) 
-
-p_theta = doit_marginals(doit)
-ggplot(p_theta) + geom_point(aes(x=theta, y=posterior)) + facet_wrap(~par)
-
-doit_variance(doit)
-doit_expectation(doit)
 ```
+
+
+## Posterior expectation and variance
+
+We have functions to approximate posterior mean and variance:
+
+```{r}
+doit_expectation(doit)
+doit_variance(doit)
+```
+
+

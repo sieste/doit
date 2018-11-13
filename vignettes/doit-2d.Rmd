@@ -9,6 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   fig.path = paste('figure/', knitr::current_input(), '-figs/', sep=''),
@@ -18,13 +19,29 @@ knitr::opts_chunk$set(
 ```
 
 
-```{r}
+```{r, eval=FALSE, echo=TRUE}
 library(doit)
 library(tidyverse)
 library(mvtnorm)
 library(viridis)
 library(lhs)
+```
+```{r, eval=TRUE, echo=FALSE}
+suppressPackageStartupMessages(library(doit))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(mvtnorm))
+suppressPackageStartupMessages(library(viridis))
+suppressPackageStartupMessages(library(lhs))
+```
 
+
+## The target function
+
+
+We use the DoIt method to approximate the banana-shaped posterior used in
+Joseph (2012):
+
+```{r}
 f = function(theta) {
   theta = as.matrix(theta)
   theta = matrix(theta, ncol=2) 
@@ -33,43 +50,78 @@ f = function(theta) {
   dmvnorm(x, c(0,0), diag(c(100, 1)))
 }
 
-# true solution
-df_true = crossing(theta1 = seq(-22, 22, .5), theta2 = seq(-12,7,.5)) %>%
+df_true = crossing(theta1 = seq(-30, 30, .5), theta2 = seq(-12,7,.5)) %>%
   mutate(f = f(cbind(theta1,theta2)))
 
+head(df_true)
+```
+
+```{r plot-true}
 ggplot(df_true) + 
   geom_raster(aes(x=theta1, y=theta2, fill=f)) + 
   geom_contour(aes(x=theta1, y=theta2, z=f), col='black', bins=10) + 
   scale_fill_viridis()
+```
 
 
-# latin hypercube design
+## Latin hypercube design
+
+We evaluate the function at 100 parameter values on a maximin latin hypercube
+design:
+
+```{r}
 set.seed(123)
 lhs = maximinLHS(n=100, k=2) %>% 
   as_data_frame %>% 
   setNames(c('theta1', 'theta2')) %>%
-  mutate(theta1 = theta1 * 40 - 20, 
+  mutate(theta1 = theta1 * 55 - 27.5, 
          theta2 = theta2 * 15 - 10)
 design = lhs %>% mutate(f = f(cbind(theta1, theta2)))
+head(design)
+```
 
+```{r plot-design}
 ggplot(design) + 
   geom_point(aes(x=theta1, y=theta2, colour=f), cex=3) + 
   scale_colour_gradient2()
+```
 
 
-# estimate optimal kernel width
+
+## Estimate the optimal kernel width
+
+The DoIt method works by approximating the target density by a weighted sum of
+Normal distributions. The optimal variance parameter `w` of the Normal
+distributions is estimated by the function `doit_estimate_w()`:
+
+
+```{r}
 w = doit_estimate_w(design)
 print(w)
+```
 
-# fit doit approximation
+
+## Evaluate the DoIt approximation
+
+The function `doit_fit()` estimates the DoIt parameters and saves them in an
+object of class `doit`:
+
+```{r}
 doit = doit_fit(design, w=w)
+str(doit)
+```
 
-# approximate function on full grid
+
+We specify the parameter values at which we want to approximate the target
+posterior, and use `doit_approx()` to calculate the approximation:
+
+```{r}
 theta_eval = df_true %>% select(theta1, theta2)
 df_approx = doit_approx(doit, theta_eval)
+```
 
 
-# plot true function and approximation
+```{r plot-approx}
 plot_df = bind_rows(df_approx %>% select(-vv) %>% 
                                   rename(f=ee) %>% 
                                   mutate(type='approx'),
@@ -79,61 +131,107 @@ ggplot(plot_df, aes(x=theta1, y=theta2)) +
   facet_wrap(~type) +
   geom_point(data=design, pch=1, colour='white') + 
   scale_colour_viridis() + scale_fill_viridis()
+```
 
-# plot prediction variance
+
+The function `doit_approx()` also returns the estimation error variance:
+
+```{r plot-variance}
 ggplot(df_approx, aes(x=theta1, y=theta2)) + 
   geom_raster(aes(fill=vv)) + 
   geom_point(data=design, pch=1, colour='white') + 
   scale_colour_viridis() + scale_fill_viridis()
+```
 
 
-# illustrate new design point compared to predictive variance
+## Add more design points
+
+To add further points to the existing design, we use the function
+`doit_propose_new()` which chooses a new design point where the current
+estimation variance is particularly high:
+
+```{r}
 theta_n = doit_propose_new(doit)
 print(theta_n)
+```
+
+```{r plot-design-update-1}
 ggplot(df_approx, aes(x=theta1, y=theta2)) + 
   geom_raster(aes(fill=vv)) + 
   scale_fill_viridis() +
   geom_point(data=design, pch=1, col='white') +
   geom_point(data=theta_n, pch=16, cex=3, col='red')
+```
 
-# save for later
-doit_old = doit
-design_old = design
 
-# add 75 new points to the design, but only re-optimise kernel width every 10th
-# iteration
-design = design_old
-doit = doit_old
+
+We could use `doit_fit()` to estimate the DoIt parameters again on the original
+design plus the added point. For more efficiency, we can use the function
+`doit_update()`. Note that the kernel width `w` is not updated. In the
+following we add 75 design points, re-optimising the kernel width `w` every
+10th iteration: 
+
+```{r}
 n_new = 75
 for (jj in 1:n_new) {
   theta_n    = doit_propose_new(doit)
   design_add = theta_n %>% mutate(f = f(theta_n))
   design = bind_rows(design, design_add)
-  if (jj %% 1 == 0) {
+  if (jj %% 10 != 0) {
+    doit = doit_update(doit, design_add)
+  } else { 
     w = doit_estimate_w(design, w_0=doit$w)
     doit = doit_fit(design, w=w)
-  } else { 
-    doit = doit_update(doit, design_add)
   }
 }
+```
 
-# plot new approximation, highlight the added design points
+
+Here we plot the new approximation and highlight the new design points added in
+the second wave:
+
+```{r plot-design-update-75}
+theta_eval = df_true %>% select(theta1, theta2)
 df_approx = doit_approx(doit, theta_eval)
 ggplot(mapping=aes(x=theta1, y=theta2)) +
   geom_raster(data=df_approx %>% rename(f_approx=ee), aes(fill=f_approx)) + 
   geom_point(data=design %>% mutate(wave=rep(c('first','second'),c(n()-n_new, n_new))),
-             mapping=aes(pch=wave, colour=wave), cex=3) + 
+             mapping=aes(pch=wave, colour=wave), cex=2) + 
   scale_fill_viridis()
+```
 
 
-# plot marginal posterior distributions
+## Marginal posterior distributions
+
+The function `doit_marginals()` returns a data frame containing approximations
+of all marginal distributions:
+
+```{r}
 df_marg = doit_marginals(doit, theta_eval)
 ggplot(df_marg, aes(x=theta, y=posterior)) + 
   geom_point() + geom_line() + 
   facet_wrap(~par, scales='free')
+```
 
-# posterior expecation and variance
+To calculate only the approximate marginal of, say, `theta1`, use
+`doit_marginal()`. If the argument `theta_eval` is unspecified, the design
+values are used:
+
+```{r}
+df_marg_theta1 = doit_marginal(doit, 'theta1')
+head(df_marg_theta1)
+```
+
+
+## Posterior expectation and variance
+
+We use the functions `doit_expectation()` and `doit_variance()` to approximate posterior expectation and covariance matrix:
+
+```{r}
 doit_expectation(doit)
+```
+
+```{r}
 doit_variance(doit)
 ```
 
