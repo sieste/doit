@@ -1,0 +1,18 @@
+Package: doit
+Title: Bayesian computation using design of experiments-based interpolation technique
+Version: 0.1
+Authors@R: person('Stefan', 'Siegert', email='stefan_siegert@gmx.de', 
+                  role=c('aut','cre'))
+Description: This package is an implementation of the design of
+    experiments-based interpolation technique (DoIt) for approximate Bayesian
+    computations. The method uses evaluations of the unnormalised posterior density
+    at a space-filling design of parameter values. Normalisation is achieved by
+    approximating the posterior density by a weighted sum of Gaussian kernels. DoIt
+    allows for approximate calculation of marginal posterior densities, and
+    posterior expecations and variances. The package contains functions to
+    optimally choose additional design points, and to calculate the optimal kernel
+    bandwith by efficient cross validation.
+Imports: dplyr, mvtnorm
+Suggests: lhs, ggplot2
+License: GPL-3
+
