@@ -39,7 +39,8 @@ doit_estimate_w = function(design, w_0=NULL, optim_control=NULL) {
 
   # minimise wmscv wrt w, use `optimize` for 1d and `optim` for >1d
   if (dd == 1) {
-    w = optimize(wmscv, c(1e-6, diff(range(theta))))$minimum
+    opt = optimize(wmscv, c(log(1e-6), log(diff(range(theta)))))
+    w = exp(opt$minimum)
   } else {
     if (is.null(w_0)) { # use component-wise silvermans rule as starting point 
       w_0 = 1.06 * m^(-.2) * apply(theta, 2, sd)
