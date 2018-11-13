@@ -19,12 +19,25 @@ improvement:
 
 
 
-## Files
+## Demo Files
 
 - [doit1-1d.md](old_stuff/doit1-1d.md): 1d example from paper 1
 - [doit2-1d.md](old_stuff/doit2-1d.md): 1d example from paper 2, solving the negativity problem
 - [doit2-2d.md](old_stuff/doit2-2d.md): 2d example from paper 2
 - [doit2-sequential.md](old_stuff/doit2-sequential.md): sequential updating
 - [doit_update.md](old_stuff/doit_update.md): new implementation, now with posterior summary measures
+
+
+
+## Todo
+
+- k in doit_marginal should accept parameter name 
+- test that doit_marginal behaves as expected with different settings for
+  theta_eval
+- make d_ij and nu_ij part of doit object
+- add @seealso tags
+- add links to roxygen blocks (had/r-pkgs/man)
+- implement examples
+- add example data
 
 
