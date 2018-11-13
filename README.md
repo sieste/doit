@@ -13,6 +13,7 @@ of marginal posterior densities, posterior expecations and posterior variances.
 The package contains functions to optimally choose additional design points,
 and to calculate the optimal kernel bandwith by efficient cross validation.
 
+![Example plot of DoIt approximation](fig/doit-2d.png)
 
 **References**:
 
