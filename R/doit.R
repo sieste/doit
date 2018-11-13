@@ -39,7 +39,7 @@ doit_estimate_sigma = function(design, sigma_0=NULL, optim_control=NULL) {
 
   # minimise wmscv wrt sigma2, use `optimize` for 1d and `optim` for >1d
   if (dd == 1) {
-    sigma2 = optimize(wmscv, c(1e-6, diff(range(design$xx))))$minimum
+    sigma2 = optimize(wmscv, c(1e-6, diff(range(theta))))$minimum
   } else {
     if (is.null(sigma_0)) { # use component-wise silvermans rule as starting point 
       sigma_0 = 1.06 * m^(-.2) * apply(theta, 2, sd)
