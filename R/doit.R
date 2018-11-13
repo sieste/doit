@@ -119,7 +119,7 @@ doit_approx = function(doit, theta_eval) with(doit, {
   ggbb2_ = drop(gg_ %*% bb)^2
   ee_    = ggbb2_ / (sqrt(prod(pi*sigma2)) * bGG2b_)
   vv_    = ggbb2_ * drop(1 - rowSums(gg_ * (gg_ %*% GGinv)))
-  return(as.data.frame(cbind(theta_eval, ee=ee_, vv=vv_)))
+  return(as.data.frame(cbind(theta_eval, ee=ee_, vv=pmax(0, vv_))))
 })
 
 
