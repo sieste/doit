@@ -39,5 +39,12 @@ improvement:
 - add links to roxygen blocks (had/r-pkgs/man)
 - implement examples
 - add example data
+- replace `crossing` by `expand`
+- in vignette plot truth and approximation side-by-side instead of contour over raster
+- add argument `near` to specify starting point in `doit_propose_new`
+- `doit_propose_new` should return a data frame 
+- `doit_expectation` should return a named vector
+- write vignettes for 1d and 2d function, using the package functions
+
 
 
