@@ -44,7 +44,7 @@ doit_estimate_sigma = function(design, sigma_0=NULL, optim_control=NULL) {
     if (is.null(sigma_0)) { # use component-wise silvermans rule as starting point 
       sigma_0 = 1.06 * m^(-.2) * apply(theta, 2, sd)
     }
-    sigma2 = optim(sigma_0, wmscv)$par
+    sigma2 = optim(sigma_0, wmscv, control=optim_control)$par
   }
   return(sigma2)
 }
@@ -119,7 +119,7 @@ doit_approx = function(doit, theta_eval) with(doit, {
   ggbb2_ = drop(gg_ %*% bb)^2
   ee_    = ggbb2_ / (sqrt(prod(pi*sigma2)) * bGG2b_)
   vv_    = ggbb2_ * drop(1 - rowSums(gg_ * (gg_ %*% GGinv)))
-  return(as_data_frame(cbind(theta_eval, ee=ee_, vv=vv_)))
+  return(as.data.frame(cbind(theta_eval, ee=ee_, vv=vv_)))
 })
 
 
@@ -132,11 +132,17 @@ doit_approx = function(doit, theta_eval) with(doit, {
 doit_propose_new = function(doit) with(doit, {
   fn = function(r) {
     gg = GGfun(r, theta, sigma2)
-    sum(bb * gg)^2 * drop(1 - gg %*% GGinv %*% gg)
+    -1 * sum(bb * gg)^2 * drop(1 - gg %*% GGinv %*% gg)
   }
   vv =  (sqrt(ff) - ee)^2 / diag(GGinv)
-  r0 = theta[which.max(vv), ]
-  optim(r0, fn, control=list(fnscale=-1))$par
+  r0 = drop(theta[which.max(vv), ])
+  if (ncol(theta) == 1) {
+    theta_new = optimize(fn, range(theta)+c(-1,1)*diff(range(theta)))$minimum
+  } else {
+    theta_new = optim(r0, fn)$par
+  }
+  names(theta_new) = colnames(theta)
+  return(data.frame(as.list(theta_new)))
 })
 
 
