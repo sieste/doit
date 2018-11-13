@@ -1,7 +1,7 @@
-#' Estimate kernel bandwith 
+#' Estimate kernel widths for DoIt
 #'
 #' Estimate the optimal kernel bandwith by minimising the weighted
-#' leave-one-out cross validation
+#' mean squared cross validation error.
 #' 
 #' @param design A data frame of design points and corresponding function
 #' evaluations. Must contain a column named `f` with function values. The other
