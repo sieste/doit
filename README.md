@@ -31,7 +31,6 @@ improvement:
 
 ## Todo
 
-- k in doit_marginal should accept parameter name 
 - test that doit_marginal behaves as expected with different settings for
   theta_eval
 - make nu_ij part of doit object

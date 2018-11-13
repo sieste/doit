@@ -190,7 +190,7 @@ doit_update = function(doit, design_new) with(doit, {
 #' DoIt approximation of the marginal posterior distribution
 #' 
 #' @param doit An object of class `doit`, see function `doit_fit`.
-#' @param k parameter dimension
+#' @param k column index or name of parameter whose posterior is calculated
 #' @param theta_eval Evaluation points at which to approximate the marginal
 #' distribution. If `NULL` (the default) the original design points are used.
 #' @return A data frame of the provided evaluation points and the corresponding
@@ -199,7 +199,10 @@ doit_update = function(doit, design_new) with(doit, {
 #'
 doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
   if (is.numeric(k)) stopifnot(k > 0, k <= ncol(theta))
-  if (is.character(k)) stopifnot(k %in% colnames(theta))
+  if (is.character(k)) {
+    stopifnot(k %in% colnames(theta))
+    k = which(colnames(theta) == k)
+  }
   if (is.null(theta_eval)) theta_eval = theta[, k]
   nu_ij = 0.5 * outer(theta[,k], theta[,k], '+')
   sd_ = sqrt(w[k]/2)
