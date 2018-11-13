@@ -210,6 +210,7 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
     k = which(colnames(theta) == k)
   }
   if (is.null(theta_eval)) theta_eval = theta[, k]
+  theta_eval = unique(theta_eval)
   sd_ = sqrt(w[k]/2)
   ans = sapply(theta_eval, function(tt) {
     phi_ij = dnorm(tt, nu_ij[[k]], sd_)
@@ -229,8 +230,9 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
 #' @export
 #'
 doit_marginals = function(doit, theta_eval=NULL) {
-  margs = lapply(1:ncol(doit$theta), function(kk) 
-                 doit_marginal(doit, kk, theta_eval))
+  if (!is.null(theta_eval)) theta_eval = as.matrix(theta_eval)
+  margs = lapply(colnames(doit$theta), function(kk) 
+                 doit_marginal(doit, kk, theta_eval[,kk]))
   margs = do.call(rbind, margs)
   return(margs)
 }
