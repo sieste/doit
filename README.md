@@ -21,10 +21,10 @@ improvement:
 
 ## Files
 
-- [doit1-1d.md](doit1-1d.md): 1d example from paper 1
-- [doit2-1d.md](doit2-1d.md): 1d example from paper 2, solving the negativity problem
-- [doit2-2d.md](doit2-2d.md): 2d example from paper 2
-- [doit2-sequential.md](doit2-sequential.md): sequential updating
-- [doit_update.md](doit_update.md): new implementation, now with posterior summary measures
+- [doit1-1d.md](old_stuff/doit1-1d.md): 1d example from paper 1
+- [doit2-1d.md](old_stuff/doit2-1d.md): 1d example from paper 2, solving the negativity problem
+- [doit2-2d.md](old_stuff/doit2-2d.md): 2d example from paper 2
+- [doit2-sequential.md](old_stuff/doit2-sequential.md): sequential updating
+- [doit_update.md](old_stuff/doit_update.md): new implementation, now with posterior summary measures
 
 
