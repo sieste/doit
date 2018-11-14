@@ -22,7 +22,7 @@ _Figure: DoIt approximation of a complicated 2-dimensional posterior in 2 waves.
 ## Installation
 
 ```r
-devtools::install_github('sieste/doit-method', build_vignettes=TRUE)
+devtools::install_github('sieste/doit', build_vignettes=TRUE)
 library(doit)
 ```
 
