@@ -1,19 +1,23 @@
-# Implementation of the design of experiments-based interpolation technique (DoIt)
+# doit: Design of experiments-based interpolation technique
 
-This R package is an implementation of the design of experiments-based
-interpolation technique (DoIt, Joseph 2012) for approximate Bayesian
-computations. 
+This R package implements the design of experiments-based interpolation
+technique (DoIt, Joseph 2012) for approximate Bayesian computations. 
 
 The method uses evaluations of the unnormalised posterior density at a
 space-filling design of parameter values. Normalisation of the posterior is
 achieved by approximating the target density by a weighted sum of Gaussian
-kernels centered on the design points. DoIt allows for approximate calculation
-of marginal posterior densities, posterior expecations and posterior variances.
+kernels centered on the design points. 
 
-The package contains functions to optimally choose additional design points,
-and to calculate the optimal kernel bandwith by efficient cross validation.
+DoIt approximates the joint posterior, marginal posteriors densities, posterior
+expecations and posterior variances. The package contains functions to
+optimally choose additional design points, and to calculate the optimal kernel
+with by cross validation.
 
+<center>
 ![Example plot of DoIt approximation](fig/doit-2d.png)
+</center>
+
+_Figure: DoIt approximation of a complicated 2-dimensional posterior in 2 waves. Plot taken from the vignette `doit-2d`._
 
 **References**:
 
