@@ -13,11 +13,9 @@ expecations and posterior variances. The package contains functions to
 optimally choose additional design points, and to calculate the optimal kernel
 with by cross validation.
 
-<center>
-![Example plot of DoIt approximation](fig/doit-2d.png)
-</center>
+![Example plot of 2d DoIt approximation](fig/doit-2d.png)
 
-_Figure: DoIt approximation of a complicated 2-dimensional posterior in 2 waves. Plot taken from the vignette `doit-2d`._
+_Figure: DoIt approximation of a complicated 2-dimensional posterior in 2 waves. See `vignette('doit-2d')` for details._
 
 **References**:
 
