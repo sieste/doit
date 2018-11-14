@@ -17,7 +17,7 @@ with by cross validation.
 
 ![Example plot of 2d DoIt approximation](fig/doit-2d.png)
 
-_Figure: DoIt approximation of a complicated 2-dimensional density in 2 waves. See `vignette('doit-2d')` for details._
+_Figure: DoIt approximation of a complicated 2-dimensional density. See `vignette('doit-2d')` for details._
 
 ## Installation
 
