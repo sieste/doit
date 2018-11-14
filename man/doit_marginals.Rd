@@ -2,7 +2,7 @@
 % Please edit documentation in R/doit.R
 \name{doit_marginals}
 \alias{doit_marginals}
-\title{DoIt approximation of all marginal posterior distributions.}
+\title{DoIt approximation of all marginal densities}
 \usage{
 doit_marginals(doit, theta_eval = NULL)
 }
@@ -14,8 +14,8 @@ distribution. If `NULL` (the default) the original design points are used.}
 }
 \value{
 A data frame of the provided evaluation points and the corresponding
-DoIt approximation of the marginal posterior.
+DoIt approximation of the marginal density.
 }
 \description{
-DoIt approximation of all marginal posterior distributions.
+DoIt approximation of all marginal densities
 }

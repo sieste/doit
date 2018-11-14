@@ -107,7 +107,7 @@ doit_fit = function(design, w=NULL) {
 }
 
 
-#' DoIt approximation of the posterior density
+#' DoIt approximation of the target density
 #'
 #' Evaluate mean and variance of the DoIt approximation of the target density
 #' at a number of evaluation points.
@@ -125,7 +125,7 @@ doit_approx = function(doit, theta_eval) with(doit, {
   ggbb2_ = drop(gg_ %*% bb)^2
   ee_    = ggbb2_ / (sqrt(prod(pi*w)) * bGG2b_)
   vv_    = ggbb2_ * drop(1 - rowSums(gg_ * (gg_ %*% GGinv)))
-  return(as.data.frame(cbind(theta_eval, ee=ee_, vv=pmax(0, vv_))))
+  return(as.data.frame(cbind(theta_eval, dens_approx=ee_, variance=pmax(0, vv_))))
 })
 
 
@@ -194,14 +194,14 @@ doit_update = function(doit, design_new) with(doit, {
 })
 
 
-#' DoIt approximation of the marginal posterior distribution
+#' DoIt approximation of the marginal density
 #' 
 #' @param doit An object of class `doit`, see function `doit_fit`.
-#' @param k column index or name of parameter whose posterior is calculated
+#' @param k column index or name of parameter whose density is calculated
 #' @param theta_eval Evaluation points at which to approximate the marginal
 #' distribution. If `NULL` (the default) the original design points are used.
 #' @return A data frame of the provided evaluation points and the corresponding
-#' DoIt approximation of the marginal posterior.
+#' DoIt approximation of the marginal density.
 #' @export
 #'
 doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
@@ -217,17 +217,17 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
     phi_ij = dnorm(tt, nu_ij[[k]], sd_)
     return(sum(d_ij * phi_ij) / sum_d_ij)
   })
-  return(data_frame(par=colnames(theta)[k], theta=theta_eval, posterior=ans))
+  return(data_frame(par=colnames(theta)[k], theta=theta_eval, dens_approx=ans))
 })
 
 
-#' DoIt approximation of all marginal posterior distributions.
+#' DoIt approximation of all marginal densities
 #' 
 #' @param doit An object of class `doit`, see function `doit_fit`.
 #' @param theta_eval Evaluation points at which to approximate the marginal
 #' distribution. If `NULL` (the default) the original design points are used.
 #' @return A data frame of the provided evaluation points and the corresponding
-#' DoIt approximation of the marginal posterior.
+#' DoIt approximation of the marginal density.
 #' @export
 #'
 doit_marginals = function(doit, theta_eval=NULL) {
@@ -240,10 +240,10 @@ doit_marginals = function(doit, theta_eval=NULL) {
 
 
 
-#' DoIt approximation of posterior expectation
+#' DoIt approximation of the expectation
 #'
 #' @param doit An object of class `doit`, see function `doit_fit`.
-#' @return Vector of posterior expectations
+#' @return Vector of expected values of the target density.
 #' @export
 #'
 doit_expectation = function(doit) with(doit, {
@@ -252,10 +252,10 @@ doit_expectation = function(doit) with(doit, {
 })
 
 
-#' DoIt approximation of posterior variance
+#' DoIt approximation of the variance
 #' 
 #' @param doit An object of class `doit`, see function `doit_fit`.
-#' @return Posterior (co-)variance matrix.
+#' @return (Co-)variance matrix of the target density.
 #' @export
 #'
 doit_variance = function(doit) with(doit, {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/doit.R
 \name{doit_approx}
 \alias{doit_approx}
-\title{DoIt approximation of the posterior density}
+\title{DoIt approximation of the target density}
 \usage{
 doit_approx(doit, theta_eval)
 }

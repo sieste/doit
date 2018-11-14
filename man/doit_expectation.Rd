@@ -2,7 +2,7 @@
 % Please edit documentation in R/doit.R
 \name{doit_expectation}
 \alias{doit_expectation}
-\title{DoIt approximation of posterior expectation}
+\title{DoIt approximation of the expectation}
 \usage{
 doit_expectation(doit)
 }
@@ -10,8 +10,8 @@ doit_expectation(doit)
 \item{doit}{An object of class `doit`, see function `doit_fit`.}
 }
 \value{
-Vector of posterior expectations
+Vector of expected values of the target density.
 }
 \description{
-DoIt approximation of posterior expectation
+DoIt approximation of the expectation
 }

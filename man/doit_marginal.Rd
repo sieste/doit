@@ -2,22 +2,22 @@
 % Please edit documentation in R/doit.R
 \name{doit_marginal}
 \alias{doit_marginal}
-\title{DoIt approximation of the marginal posterior distribution}
+\title{DoIt approximation of the marginal density}
 \usage{
 doit_marginal(doit, k, theta_eval = NULL)
 }
 \arguments{
 \item{doit}{An object of class `doit`, see function `doit_fit`.}
 
-\item{k}{column index or name of parameter whose posterior is calculated}
+\item{k}{column index or name of parameter whose density is calculated}
 
 \item{theta_eval}{Evaluation points at which to approximate the marginal
 distribution. If `NULL` (the default) the original design points are used.}
 }
 \value{
 A data frame of the provided evaluation points and the corresponding
-DoIt approximation of the marginal posterior.
+DoIt approximation of the marginal density.
 }
 \description{
-DoIt approximation of the marginal posterior distribution
+DoIt approximation of the marginal density
 }

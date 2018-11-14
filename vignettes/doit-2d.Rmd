@@ -38,8 +38,8 @@ suppressPackageStartupMessages(library(lhs))
 ## The target function
 
 
-We use the DoIt method to approximate the banana-shaped posterior used in
-Joseph (2012):
+We use the DoIt method to approximate the banana-shaped density used in Joseph
+(2012):
 
 ```{r}
 f = function(theta) {
@@ -59,7 +59,7 @@ head(df_true)
 ```{r plot-true}
 ggplot(df_true) + 
   geom_raster(aes(x=theta1, y=theta2, fill=f)) + 
-  geom_contour(aes(x=theta1, y=theta2, z=f), col='black', bins=10) + 
+  geom_contour(aes(x=theta1, y=theta2, z=f), col='black', lty=2) + 
   scale_fill_viridis()
 ```
 
@@ -113,7 +113,7 @@ str(doit)
 
 
 We specify the parameter values at which we want to approximate the target
-posterior, and use `doit_approx()` to calculate the approximation:
+density, and use `doit_approx()` to calculate the approximation:
 
 ```{r}
 theta_eval = df_true %>% select(theta1, theta2)
@@ -122,8 +122,7 @@ df_approx = doit_approx(doit, theta_eval)
 
 
 ```{r plot-approx}
-plot_df = bind_rows(df_approx %>% select(-vv) %>% 
-                                  rename(f=ee) %>% 
+plot_df = bind_rows(df_approx %>% rename(f=dens_approx) %>% 
                                   mutate(type='approx'),
                     df_true %>% mutate(type='true'))
 ggplot(plot_df, aes(x=theta1, y=theta2)) + 
@@ -138,7 +137,7 @@ The function `doit_approx()` also returns the estimation error variance:
 
 ```{r plot-variance}
 ggplot(df_approx, aes(x=theta1, y=theta2)) + 
-  geom_raster(aes(fill=vv)) + 
+  geom_raster(aes(fill=variance)) + 
   geom_point(data=design, pch=1, colour='white') + 
   scale_colour_viridis() + scale_fill_viridis()
 ```
@@ -157,7 +156,7 @@ print(theta_n)
 
 ```{r plot-design-update-1}
 ggplot(df_approx, aes(x=theta1, y=theta2)) + 
-  geom_raster(aes(fill=vv)) + 
+  geom_raster(aes(fill=variance)) + 
   scale_fill_viridis() +
   geom_point(data=design, pch=1, col='white') +
   geom_point(data=theta_n, pch=16, cex=3, col='red')
@@ -187,28 +186,29 @@ for (jj in 1:n_new) {
 ```
 
 
-Here we plot the new approximation and highlight the new design points added in
-the second wave:
+Here we plot the new approximation and highlight the sequentially added new
+design points:
 
 ```{r plot-design-update-75}
 theta_eval = df_true %>% select(theta1, theta2)
 df_approx = doit_approx(doit, theta_eval)
 ggplot(mapping=aes(x=theta1, y=theta2)) +
-  geom_raster(data=df_approx %>% rename(f_approx=ee), aes(fill=f_approx)) + 
-  geom_point(data=design %>% mutate(wave=rep(c('first','second'),c(n()-n_new, n_new))),
-             mapping=aes(pch=wave, colour=wave), cex=2) + 
+  geom_raster(data=df_approx, aes(fill=dens_approx)) + 
+  geom_point(data=design %>% 
+                  mutate(type=rep(c('initial','sequential'), c(n()-n_new, n_new))),
+             mapping=aes(pch=type, colour=type), cex=2) + 
   scale_fill_viridis()
 ```
 
 
-## Marginal posterior distributions
+## Marginal densities
 
 The function `doit_marginals()` returns a data frame containing approximations
 of all marginal distributions:
 
 ```{r}
 df_marg = doit_marginals(doit, theta_eval)
-ggplot(df_marg, aes(x=theta, y=posterior)) + 
+ggplot(df_marg, aes(x=theta, y=dens_approx)) + 
   geom_point() + geom_line() + 
   facet_wrap(~par, scales='free')
 ```
@@ -223,9 +223,10 @@ head(df_marg_theta1)
 ```
 
 
-## Posterior expectation and variance
+## Expectations and variances
 
-We use the functions `doit_expectation()` and `doit_variance()` to approximate posterior expectation and covariance matrix:
+We use the functions `doit_expectation()` and `doit_variance()` to approximate
+the expectation and covariance matrix of the target density:
 
 ```{r}
 doit_expectation(doit)

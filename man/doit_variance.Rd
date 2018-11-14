@@ -2,7 +2,7 @@
 % Please edit documentation in R/doit.R
 \name{doit_variance}
 \alias{doit_variance}
-\title{DoIt approximation of posterior variance}
+\title{DoIt approximation of the variance}
 \usage{
 doit_variance(doit)
 }
@@ -10,8 +10,8 @@ doit_variance(doit)
 \item{doit}{An object of class `doit`, see function `doit_fit`.}
 }
 \value{
-Posterior (co-)variance matrix.
+(Co-)variance matrix of the target density.
 }
 \description{
-DoIt approximation of posterior variance
+DoIt approximation of the variance
 }

@@ -64,11 +64,12 @@ design$f = sapply(design$x, h)
 
 
 The DoIt method works by approximating the target density by a weighted sum of
-Normal distributions. The optimatl variance parameter `w` of the Normal
+Normal distributions. The optimal variance parameter `w` of the Normal
 distributions is estimated by the function `doit_estimate_w()`:
 
 ```{r}
 w = doit_estimate_w(design)
+print(w)
 ```
 
 
@@ -89,8 +90,8 @@ theta_eval = data.frame(x = seq(-15,25,.1))
 doit_out = doit_approx(doit, theta_eval)
 ```
 
-The approximation function returns the estimated value `ee` and the estimation
-error variance `vv`:
+The approximation function returns the approximated density value and the
+estimation error variance:
 
 ```{r}
 head(doit_out)
@@ -100,7 +101,7 @@ The output of `doit_approx()` works nicely with the `ggplot2` package:
 
 ```{r plot-doit-approx}
 ggplot() + 
-geom_line(data=doit_out, aes(x=x, y=ee, colour=sqrt(vv))) +
+geom_line(data=doit_out, aes(x=x, y=dens_approx, colour=variance)) +
 geom_point(data=design, aes(x=x, y=0), pch=1, cex=2)
 ```
 
@@ -130,7 +131,7 @@ doit_out = doit_approx(doit, theta_eval)
 ggplot() + 
 geom_point(data=design_new, aes(x=x, y=0), pch=1, cex=2, col='red') +
 geom_point(data=design, aes(x=x, y=0), pch=1, cex=2) +
-geom_line(data=doit_out, aes(x=x, y=ee, colour=sqrt(vv))) 
+geom_line(data=doit_out, aes(x=x, y=dens_approx, colour=variance))
 ```
 
 
