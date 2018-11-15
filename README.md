@@ -13,7 +13,7 @@ points.
 DoIt approximates the joint density, marginal densities, as well as expecations
 and variances of the target density. The package contains functions to
 optimally choose additional design points, and to calculate the optimal kernel
-with by cross validation.
+width by cross validation.
 
 ![Example plot of 2d DoIt approximation](fig/doit-2d.png)
 
