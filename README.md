@@ -36,9 +36,12 @@ install.packages('doit_0.1.tar.gz', repos=NULL, type='source')
 
 ## Vignettes
 
+The usage of the package is documented in 2 vignettes, where I results from the original papers
+are reproduced.
+
 ```r
-vignette('doit-1d') # 1d example from the Joseph (2012) paper
-vignette('doit-2d') # 2d example from the Joseph (2012) paper
+vignette('doit-1d') # 1d example from Joseph (2012)
+vignette('doit-2d') # 2d example from Joseph (2012)
 ```
 
 ## References
