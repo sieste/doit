@@ -1,5 +1,5 @@
 Package: doit
-Title: Bayesian computation using design of experiments-based interpolation technique
+Title: Bayesian Computation using Design of Experiments-Based Interpolation Technique
 Version: 0.1
 Authors@R: person('Stefan', 'Siegert', email='stefan_siegert@gmx.de', 
                   role=c('aut','cre'))
