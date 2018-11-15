@@ -26,6 +26,13 @@ devtools::install_github('sieste/doit', build_vignettes=TRUE)
 library(doit)
 ```
 
+Alternatively, download the zipped package `doit_...tar.gz` and install it from
+source
+
+```r
+install.packages('doit_0.1.tar.gz', repos=NULL, type='source')
+```
+
 
 ## Vignettes
 

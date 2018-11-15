@@ -2,3 +2,8 @@ legacy
 README.md
 Makefile
 fig
+papers
+.gitignore
+^.*.tar.gz$
+^.Rcheck$
+
