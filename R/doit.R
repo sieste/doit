@@ -12,6 +12,7 @@
 #' @param optim_control A list passed to `optimize` (for 1d problems) or
 #' `optim` (if the parameter has dimension 2 or more) 
 #' @return A vector of optimal kernel widths.
+#' @importFrom stats optim optimize sd
 #' @export
 #'
 doit_estimate_w = function(design, w_0=NULL, optim_control=NULL) {
