@@ -1,0 +1,176 @@
+---
+title: "DoIt for a bimodal 2-d density"
+author: "Stefan Siegert"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{doit-bimodal-example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  fig.path = paste('figure/', knitr::current_input(), '-figs/', sep=''),
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+
+```{r, eval=FALSE, echo=TRUE}
+library(doit)
+library(tidyverse)
+library(mvtnorm)
+library(viridis)
+library(lhs)
+```
+```{r, eval=TRUE, echo=FALSE}
+suppressPackageStartupMessages(library(doit))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(mvtnorm))
+suppressPackageStartupMessages(library(viridis))
+suppressPackageStartupMessages(library(lhs))
+```
+
+
+
+## The target function
+
+
+We use the DoIt method to approximate a 2-dimensional bimodal
+density which is proportional to a weighted sum of 2 bivariate
+Normal distributions:
+
+```{r}
+f_target = function(x) {
+  2/3 * dmvnorm(x, c(0,0), diag(c(1,1))) + 
+  1/3 * dmvnorm(x, c(3,3), matrix(c(2,.6, .6, 1),2,2))
+}
+
+df_true = crossing(x1 = seq(-5, 10, .1), x2 = seq(-5,10,.1)) %>%
+  mutate(f = f_target(cbind(x1,x2)))
+
+head(df_true)
+```
+
+```{r plot-true}
+ggplot(df_true) + 
+  geom_raster(aes(x=x1, y=x2, fill=f)) + 
+  geom_contour(aes(x=x1, y=x2, z=f), col='black', lty=2) + 
+  scale_fill_viridis()
+```
+
+
+# Latin hypercube design
+
+We sample a latin hypercube design on the interval `[-5,10]` in both dimensions:
+
+```{r}
+set.seed(123)
+design = maximinLHS(n=100, k=2) %>% 
+         as_data_frame %>% 
+         setNames(c('x1', 'x2')) %>%
+         mutate(x1 = x1 * 15 - 5, 
+                x2 = x2 * 15 - 5,
+                f  = f_target(cbind(x1, x2)))
+head(design)
+```
+
+```{r plot-design}
+ggplot(design) + 
+  geom_point(aes(x=x1, y=x2, colour=f), cex=3) + 
+  scale_colour_gradient2()
+```
+
+
+
+# Fit DoIt approximation
+
+We use `doit_estimate_w()` to estimate the optimal kernel width for
+our design. We then use `doit_fit()` to estimate the parameters for
+the approximation, and `doit_approx()` to approximate the target
+function at the desired parameter values:
+
+```{r}
+w          = doit_estimate_w(design)
+doit       = doit_fit(design, w=w)
+x_eval     = df_true %>% select(x1, x2)
+df_approx  = doit_approx(doit, x_eval)
+```
+
+We plot the approximation and compare it to the target function: 
+
+```{r plot-approx}
+plot_df = bind_rows(df_approx %>% rename(f=dens_approx) %>% 
+                                  mutate(type='approx'),
+                    df_true %>% mutate(type='true'))
+ggplot(plot_df, aes(x=x1, y=x2)) + 
+  geom_raster(aes(fill=f)) + 
+  facet_wrap(~type) +
+  geom_point(data=design, pch=1, colour='white') + 
+  scale_colour_viridis() + scale_fill_viridis()
+```
+
+Even though only very few design points are in the "active region"
+of the target function, the approximation looks quite accurate.
+
+We also look at the variance of the approximation:
+
+```{r plot-variance}
+ggplot(df_approx, aes(x=x1, y=x2)) + 
+  geom_raster(aes(fill=variance)) + 
+  geom_contour(aes(z=dens_approx), col='black', lty=2) + 
+  geom_point(data=design, pch=1, colour='white') + 
+  scale_colour_viridis() + scale_fill_viridis()
+```
+
+The approximation variance is highest in between design points
+inside the active region. These high variance regions will be
+targeted when adding new design points during sequential updating.
+
+
+## Sequential update of the design
+
+Here we sequentially add 25 new design points, reestimating the
+kernel width every 5th iteration:
+
+```{r}
+n_new = 25
+for (jj in 1:n_new) {
+  x_n        = doit_propose_new(doit)
+  design_add = x_n %>% mutate(f = f_target(x_n))
+  design     = bind_rows(design, design_add)
+  if (jj %% 5 != 0) {
+    doit = doit_update(doit, design_add)
+  } else { 
+    w    = doit_estimate_w(design, w_0=doit$w)
+    doit = doit_fit(design, w=w)
+  }
+}
+```
+
+We plot the updated approximation and highlight the new design
+points:
+
+```{r plot-design-update-25}
+df_approx = doit_approx(doit, x_eval)
+ggplot(mapping=aes(x=x1, y=x2)) +
+  geom_raster(data=df_approx, aes(fill=dens_approx)) + 
+  geom_point(data=design %>% 
+                  mutate(design=rep(c('latin_hypercube','sequential'), c(n()-n_new, n_new))),
+             mapping=aes(pch=design, colour=design), cex=2) + 
+  scale_fill_viridis()
+```
+
+Lastly, we use `doit_marginals()` to approximate the marginal densities:
+
+```{r plot-marg}
+df_marg = doit_marginals(doit, x_eval)
+ggplot(df_marg, aes(x=theta, y=dens_approx)) + 
+  geom_point() + geom_line() + facet_wrap(~par)
+```
+
+
+
