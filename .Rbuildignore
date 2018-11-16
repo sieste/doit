@@ -6,5 +6,4 @@ papers
 .gitignore
 ^.*.tar.gz$
 ^.Rcheck$
-inst/doc
 
