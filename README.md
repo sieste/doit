@@ -50,10 +50,12 @@ vignette('doit-2d') # 2d example from Joseph (2012)
 
 ## References
 
-**Bayesian Computation Using Design of Experiments-Based Interpolation Technique**, Joseph, 2012, Technometrics,
+Joseph (2012) _Bayesian Computation Using Design of Experiments-Based
+Interpolation Technique_, Technometrics,
 [10.1080/00401706.2012.680399](http://dx.doi.org/10.1080/00401706.2012.680399)
 
-**A Note on Nonnegative DoIt Approximation**, Joseph, 2012, Technometrics, [10.1080/00401706.2012.759154](http://dx.doi.org/10.1080/00401706.2012.759154)
+Joseph et al. (2012) _A Note on Nonnegative DoIt Approximation_, Technometrics,
+[10.1080/00401706.2012.759154](http://dx.doi.org/10.1080/00401706.2012.759154)
 
 
 
