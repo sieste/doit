@@ -19,30 +19,34 @@ width by cross validation.
 
 _Figure: DoIt approximation of a complicated 2-dimensional density. See `vignette('doit-2d')` for details._
 
+
 ## Installation
 
 ```r
 devtools::install_github('sieste/doit', build_vignettes=TRUE)
-library(doit)
 ```
 
-Alternatively, download the zipped package `doit_...tar.gz` and install it from
-source
+To install the package without using `devtools`, run the following shell
+commands:
 
-```r
-install.packages('doit_0.1.tar.gz', repos=NULL, type='source')
+```
+git clone git@github.com:sieste/doit.git
+cd doit
+R CMD build .
+R CMD INSTALL doit_*.tar.gz
 ```
 
 
 ## Vignettes
 
-The usage of the package is documented in 2 vignettes, where I results from the original papers
-are reproduced.
+The usage of the package is documented in 2 vignettes, where results from the
+original papers are reproduced.
 
 ```r
 vignette('doit-1d') # 1d example from Joseph (2012)
 vignette('doit-2d') # 2d example from Joseph (2012)
 ```
+
 
 ## References
 
