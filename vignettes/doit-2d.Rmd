@@ -195,8 +195,8 @@ df_approx = doit_approx(doit, theta_eval)
 ggplot(mapping=aes(x=theta1, y=theta2)) +
   geom_raster(data=df_approx, aes(fill=dens_approx)) + 
   geom_point(data=design %>% 
-                  mutate(type=rep(c('initial','sequential'), c(n()-n_new, n_new))),
-             mapping=aes(pch=type, colour=type), cex=2) + 
+                  mutate(design=rep(c('latin_hypercube','sequential'), c(n()-n_new, n_new))),
+             mapping=aes(pch=design, colour=design), cex=2) + 
   scale_fill_viridis()
 ```
 
