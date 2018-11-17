@@ -16,7 +16,7 @@ design points, and to calculate the optimal kernel width by cross validation.
 
 ![Example plot of 2d DoIt approximation](fig/doit-2d.png)
 
-_Figure: DoIt approximation of a complicated 2-dimensional density. See `vignette('doit-2d')` for details._
+_Figure: DoIt approximation of a complicated 2-dimensional density. See `vignette('doit_2d')` for details._
 
 
 ## Installation
@@ -42,8 +42,8 @@ The usage of the package is documented in 2 vignettes, where results from the
 original papers are reproduced.
 
 ```r
-vignette('doit-1d') # 1d example from Joseph (2012)
-vignette('doit-2d') # 2d example from Joseph (2012)
+vignette('doit_1d') # 1d example from Joseph (2012)
+vignette('doit_2d') # 2d example from Joseph (2012)
 ```
 
 

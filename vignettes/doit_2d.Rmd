@@ -4,7 +4,7 @@ author: "Stefan Siegert"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{doit-2d-example}
+  %\VignetteIndexEntry{doit_2d_example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -67,16 +67,19 @@ ggplot(df_true) +
 ## Latin hypercube design
 
 We evaluate the function at 100 parameter values on a maximin latin hypercube
-design:
+design. As the approximation region we choose the interval `[-27.5, 27.5]` in
+the `theta1` direction, and `[-10,5]` in the `theta2` direction.
 
 ```{r}
+lim1 = data_frame(min=-27.5, max=27.5, range=max-min)
+lim2 = data_frame(min=-10,   max=5,    range=max-min)
 set.seed(123)
-lhs = maximinLHS(n=100, k=2) %>% 
-  as_data_frame %>% 
-  setNames(c('theta1', 'theta2')) %>%
-  mutate(theta1 = theta1 * 55 - 27.5, 
-         theta2 = theta2 * 15 - 10)
-design = lhs %>% mutate(f = f(cbind(theta1, theta2)))
+design = maximinLHS(n=100, k=2) %>% 
+         as_data_frame %>% 
+         setNames(c('theta1', 'theta2')) %>%
+         mutate(theta1 = theta1 * lim1$range + lim1$min, 
+                theta2 = theta2 * lim2$range + lim2$min,
+                f      = f(cbind(theta1, theta2)))
 head(design)
 ```
 
@@ -85,7 +88,6 @@ ggplot(design) +
   geom_point(aes(x=theta1, y=theta2, colour=f), cex=3) + 
   scale_colour_gradient2()
 ```
-
 
 
 ## Estimate the optimal kernel width
