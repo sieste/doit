@@ -1,0 +1,10 @@
+bibentry(header = 'To cite `doit` in publications, please use:',
+         bibtype = "Manual",
+         title = paste(meta[['Package']], ': ', meta[['Title']], sep=''),
+         author = meta[['Author']],
+         year = sub('-.*', '', meta[['Date']]),
+         note = paste('R package version', meta[['Version']]),
+         url = "https://github.com/sieste/doit"
+)
+
+
