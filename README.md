@@ -22,13 +22,13 @@ _Figure: DoIt approximation of a complicated 2-dimensional density. See `vignett
 ## Installation
 
 ```r
-devtools::install_github('sieste/doit', build_vignettes=TRUE)
+remotes::install_github('sieste/doit', build_opts=NULL)
 ```
 
-To install the package without using `devtools`, run the following shell
+To install the package without using `remotes`, run the following shell
 commands:
 
-```
+```sh
 git clone git@github.com:sieste/doit.git
 cd doit
 R CMD build .
