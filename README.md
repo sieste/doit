@@ -11,9 +11,8 @@ target density by a weighted sum of Gaussian kernels centered on the design
 points. 
 
 DoIt approximates the joint density, marginal densities, as well as expecations
-and variances of the target density. The package contains functions to
-optimally choose additional design points, and to calculate the optimal kernel
-width by cross validation.
+and variances. The package contains functions to optimally choose additional
+design points, and to calculate the optimal kernel width by cross validation.
 
 ![Example plot of 2d DoIt approximation](fig/doit-2d.png)
 
