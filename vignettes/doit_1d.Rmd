@@ -4,7 +4,7 @@ author: "Stefan Siegert"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{doit_1d_example}
+  %\VignetteIndexEntry{DoIt for a 1-d example}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

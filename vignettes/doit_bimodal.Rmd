@@ -4,7 +4,7 @@ author: "Stefan Siegert"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{doit_bimodal_example}
+  %\VignetteIndexEntry{DoIt for a bimodal 2-d density}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

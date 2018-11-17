@@ -7,7 +7,7 @@ roxygenise:
 install: 
 	R CMD INSTALL .
 build_tgz:
-	R_LIBS+=~/lib/R R CMD build .
+	R CMD build .
 clean:
 	rm -rf man NAMESPACE
 	
