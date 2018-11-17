@@ -1,4 +1,4 @@
-# doit: Design of experiments-based interpolation technique in R
+# doit: Bayesian Computation using Design of experiments-based interpolation technique in R
 
 ## Overview
 
