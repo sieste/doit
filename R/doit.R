@@ -22,10 +22,12 @@ doit_estimate_w = function(design, w_0=NULL, optim_control=NULL) {
   dd    = ncol(theta)
   ff    = design$f
 
+  theta2 = lapply(1:dd, function(ii) outer(theta[,ii], theta[,ii], '-')^2 / 2)
+
   GGfun = function(w) {
     mat_ = matrix(0, nrow=m, ncol=m)
     for (ii in seq_len(dd)) {    
-      mat_ = mat_ - outer(theta[,ii], theta[,ii], '-')^2 / (2 * w[ii])
+      mat_ = mat_ - theta2[[ii]] / w[ii]
     }
     return(drop(exp(mat_)))
   }
