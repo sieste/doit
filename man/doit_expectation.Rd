@@ -13,5 +13,5 @@ doit_expectation(doit)
 Vector of expected values of the target density.
 }
 \description{
-DoIt approximation of the expectation
+Approximate the expectation of the vector `theta`.
 }

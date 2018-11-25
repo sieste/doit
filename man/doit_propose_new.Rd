@@ -13,5 +13,7 @@ doit_propose_new(doit)
 A parameter value.
 }
 \description{
-Propose a new design point for the DoIt approximation
+Find the point with largest estimation variance by numerical optimisation,
+using the current design point with largest leave-one-out prediction error
+as the starting point.
 }

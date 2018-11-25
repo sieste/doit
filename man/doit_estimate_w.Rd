@@ -22,6 +22,6 @@ the same dimension as the parameter space.}
 A vector of optimal kernel widths.
 }
 \description{
-Estimate the optimal kernel bandwith by minimising the weighted
-mean squared cross validation error.
+Estimate the optimal kernel bandwith for the approximation by minimising the
+weighted mean squared cross validation error.
 }

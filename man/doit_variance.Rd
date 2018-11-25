@@ -13,5 +13,5 @@ doit_variance(doit)
 (Co-)variance matrix of the target density.
 }
 \description{
-DoIt approximation of the variance
+Approximate the covariance matrix of the vector `theta`.
 }

@@ -19,5 +19,5 @@ A data frame of the provided evaluation points and the corresponding
 DoIt approximation of the marginal density.
 }
 \description{
-DoIt approximation of the marginal density
+Approximate the marginal density of one element of `theta`.
 }
