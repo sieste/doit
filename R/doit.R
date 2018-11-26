@@ -255,7 +255,7 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
     phi_ij = dnorm(tt, nu_ij[,k], sd_)
     return(sum(d_ij * phi_ij) / sum_d_ij)
   })
-  return(data_frame(par=colnames(theta)[k], theta=theta_eval, dens_approx=ans))
+  return(data.frame(par=colnames(theta)[k], theta=theta_eval, dens_approx=ans))
 })
 
 
@@ -308,6 +308,38 @@ doit_variance = function(doit) with(doit, {
 doit_integral = function(doit) with(doit, {
   ans = sqrt(prod(pi*w)) * drop(bb %*% GG2 %*% bb)
   return(ans)
+})
+
+
+#' DoIt approximation of the marginal of a linear transformation
+#'
+#' Approximate the marginal density of a linear transformation `A %*% theta`.
+#'
+#' @param doit An object of class `doit`, see function `doit_fit`.
+#' @param A The transformation matrix.
+#' @param theta_eval Evaluation points at which to apply the linear
+#' transformation and then approximate the marginal distribution. If `NULL`
+#' (the default) the original design points are used.
+#' @return A data frame of the transformed evaluation points and the corresponding
+#' DoIt approximation of the marginal density.
+#' @export
+#' 
+doit_marginal_A = function(doit, A=NULL, theta_eval=NULL) with(doit, {
+  if (is.null(theta_eval)) theta_eval = theta
+  dd = ncol(theta)
+  if (is.null(A)) A = diag(ncol=dd)
+  if (is.null(dim(A))) A = matrix(A, nrow=1)
+  stopifnot(ncol(A) == dd)
+  theta_eval = matrix(theta_eval, ncol=dd)
+  tau_eval   = theta_eval %*% t(A)
+  colnames(tau_eval) = paste('tau', 1:nrow(A), sep='')
+  mu_ij      = nu_ij %*% t(A)
+  Sigma      = A %*% diag(x=w/2, nrow=dd) %*% t(A)
+  phi_ij = t(apply(mu_ij, 1, function(mu) {
+    mvtnorm::dmvnorm(tau_eval, mu, Sigma)
+  }))
+  dens_approx = colSums(d_ij * phi_ij) / sum_d_ij
+  return(data.frame(tau_eval, dens_approx=dens_approx))
 })
 
 
