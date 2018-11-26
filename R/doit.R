@@ -297,3 +297,17 @@ doit_variance = function(doit) with(doit, {
 })
 
 
+#' DoIt approximation of the normalisation constant
+#'
+#' Calculate the integral of the approximated function.
+#'
+#' @param doit An object of class `doit`, see function `doit_fit`.
+#' @return The integral of the approximated function over all `theta`.
+#' @export
+#'
+doit_integral = function(doit) with(doit, {
+  ans = sqrt(prod(pi*w)) * drop(bb %*% GG2 %*% bb)
+  return(ans)
+})
+
+
