@@ -99,20 +99,10 @@ doit_fit = function(design, w=NULL) {
   sum_d_ij = sum(d_ij)
   nu_ij    = lapply(as.data.frame(theta), function(tt) 
                     0.5 * outer(tt, tt, '+'))
-  df_ij         = expand.grid(i=1:m, j=1:m)
-  df_ij         = df_ij[with(df_ij, i >= j), ]
-  df_ij$theta_i = lapply(df_ij$i, function(ii) theta[ii, ])
-  df_ij$theta_j = lapply(df_ij$j, function(jj) theta[jj, ])
-  df_ij$d_ij    = sapply(1:nrow(df_ij), function(kk) with(df_ij, 
-                         bb[i[kk]] * bb[j[kk]] * 
-                         exp(-sum((theta_i[[kk]] - theta_j[[kk]]) ^ 2/(4 * w)))))
-  df_ij$d_ij  = with(df_ij, ifelse(i != j, 2 * d_ij, d_ij))
-  df_ij$mu_ij = lapply(1:nrow(df_ij), function(kk) with(df_ij, 
-                       (theta_i[[kk]] + theta_j[[kk]]) / 2))
 
   ans = list(GGfun=GGfun, theta=theta, w=w, 
              ff=ff, bb=bb, GG=GG, GG2=GG2, ee=ee, GGinv=GGinv,
-             d_ij=d_ij, sum_d_ij=sum_d_ij, nu_ij=nu_ij, df_ij=df_ij)
+             d_ij=d_ij, sum_d_ij=sum_d_ij, nu_ij=nu_ij)
 
   class(ans) = c('doit', class(ans))
   return(ans)
@@ -194,18 +184,6 @@ doit_update = function(doit, design_new) with(doit, {
   bb_up   = drop(GGinv_up %*% sqrt(ff_up))
   ee_up   = drop(1/diag(GGinv_up) * GGinv_up %*% sqrt(ff_up))
   d_ij_up = tcrossprod(bb_up) * GG2_up
-
-  m        = nrow(theta_up)
-  df_ij_up = expand.grid(i=1:m, j=1:m)
-  df_ij_up = df_ij_up[with(df_ij_up, i >= j), ]
-  df_ij_up$theta_i = lapply(df_ij_up$i, function(ii) theta_up[ii, ])
-  df_ij_up$theta_j = lapply(df_ij_up$j, function(jj) theta_up[jj, ])
-  df_ij_up$d_ij = sapply(1:nrow(df_ij_up), function(kk) with(df_ij_up, 
-                      bb_up[i[kk]] * bb_up[j[kk]] * 
-                      exp(-sum((theta_i[[kk]] - theta_j[[kk]]) ^ 2/(4 * w)))))
-  df_ij_up$d_ij = with(df_ij_up, ifelse(i != j, 2*d_ij, d_ij))
-  df_ij_up$mu_ij = lapply(1:nrow(df_ij_up), function(kk) with(df_ij_up, (theta_i[[kk]] + theta_j[[kk]])/2))
-
   # write new object
   doit$theta    = theta_up
   doit$ff       = ff_up
@@ -218,8 +196,21 @@ doit_update = function(doit, design_new) with(doit, {
   doit$sum_d_ij = sum(d_ij_up)
   doit$nu_ij    = lapply(as.data.frame(theta_up), function(tt) 
                          0.5 * outer(tt, tt, '+'))
-  doit$df_ij    = df_ij_up
   return(doit)
+})
+
+
+#' DoIt approximation of the expectation
+#'
+#' Approximate the expectation of the vector `theta`.
+#'
+#' @param doit An object of class `doit`, see function `doit_fit`.
+#' @return Vector of expected values of the target density.
+#' @export
+#'
+doit_expectation = function(doit) with(doit, {
+  e_theta = sapply(nu_ij, function(nu) sum(d_ij * nu) / sum_d_ij)
+  return(e_theta)
 })
 
 
@@ -270,57 +261,6 @@ doit_marginals = function(doit, theta_eval=NULL) {
   margs = do.call(rbind, margs)
   return(margs)
 }
-
-
-#' DoIt approximation for a linear transformations
-#'
-#' Approximate the marginal density of a linear transformation `tau = A %*%
-#' theta`, such as `tau = theta[1]`, `tau = theta[1:3]` or `tau =
-#' theta[1]+theta[2]`. If `tau` has dimension greater than 1, the joint
-#' marginal density is approximated. 
-#' 
-#' @param doit An object of class `doit`, see function `doit_fit`.
-#' @param A The transformation matrix, with number of columns equal to the
-#' number of parameters. Default is the identity matrix. The rownames of `A`
-#' are used to name the elements of the transformation. If unspecified, row
-#' names are set to `tau1`, `tau2`, ...
-#' @param theta_eval Parameter values at which to approximate the density of
-#' the transformation. If `NULL` (the default) the original design points are
-#' used.
-#' @return A data frame of the transformed evaluation points and the
-#' corresponding DoIt approximation of the marginal density.
-#' @export
-#'
-doit_marginal_A = function(doit, A=NULL, theta_eval=NULL) with(doit, {
-  if (is.null(theta_eval))  theta_eval  = theta
-  if (is.null(A))           A           = diag(ncol(theta))
-  if (is.null(rownames(A))) rownames(A) = paste('tau', 1:nrow(A), sep='')
-  tau_eval    = theta_eval %*% t(A)
-  colnames(tau_eval) = rownames(A)
-  mu_eval     = lapply(df_ij$mu_ij, function(mu_) A %*% mu_)
-  sigma_eval  = A %*% diag(w/2) %*% t(A)
-  phi_        = t(sapply(mu_eval, function(mu_) 
-                    mvtnorm::dmvnorm(tau_eval, mu_, sigma_eval)))
-  d_ij_       = df_ij$d_ij
-  dens_approx = colSums(phi_ * d_ij_) / sum(d_ij_)
-  return(cbind(tau_eval, dens_approx))
-})
-
-
-#' DoIt approximation of the expectation
-#'
-#' Approximate the expectation of the vector `theta`.
-#'
-#' @param doit An object of class `doit`, see function `doit_fit`.
-#' @return Vector of expected values of the target density.
-#' @export
-#'
-doit_expectation = function(doit) with(doit, {
-  mu_     = do.call(rbind, df_ij$mu_ij)
-  d_      = df_ij$d_ij
-  e_theta = colSums(mu_ * d_) / sum(d_)
-  return(e_theta)
-})
 
 
 #' DoIt approximation of the variance
