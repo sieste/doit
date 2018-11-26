@@ -95,14 +95,19 @@ doit_fit = function(design, w=NULL) {
   GG2      = sqrt(GG)
   bb       = drop(solve(GG, sqrt(ff)))
   ee       = drop(1/diag(GGinv) * GGinv %*% sqrt(ff))
-  d_ij     = tcrossprod(bb) * GG2
+
+  ij = expand.grid(i=1:m, j=1:m)
+  ij = ij[ with(ij, i>=j), ]
+  diag_w = diag(x=1/(2*w), nrow=dd)
+  theta_imj2 = (theta[ij$i, , drop=FALSE] - theta[ij$j, , drop=FALSE])^2
+  d_ij = bb[ij$i] * bb[ij$j] * exp(-0.5*rowSums(theta_imj2 %*% diag_w))
+  d_ij = ifelse(ij$i == ij$j, d_ij, 2*d_ij)
+  nu_ij = 0.5 * (theta[ij$i, , drop=FALSE] + theta[ij$j, , drop=FALSE])
   sum_d_ij = sum(d_ij)
-  nu_ij    = lapply(as.data.frame(theta), function(tt) 
-                    0.5 * outer(tt, tt, '+'))
 
   ans = list(GGfun=GGfun, theta=theta, w=w, 
              ff=ff, bb=bb, GG=GG, GG2=GG2, ee=ee, GGinv=GGinv,
-             d_ij=d_ij, sum_d_ij=sum_d_ij, nu_ij=nu_ij)
+             d_ij=d_ij, sum_d_ij=sum_d_ij, nu_ij=nu_ij, ij=ij)
 
   class(ans) = c('doit', class(ans))
   return(ans)
@@ -183,7 +188,17 @@ doit_update = function(doit, design_new) with(doit, {
   ff_up   = c(ff, design_new$f)
   bb_up   = drop(GGinv_up %*% sqrt(ff_up))
   ee_up   = drop(1/diag(GGinv_up) * GGinv_up %*% sqrt(ff_up))
-  d_ij_up = tcrossprod(bb_up) * GG2_up
+
+  m = nrow(theta_up)
+  dd = ncol(theta_up)
+  ij_up = expand.grid(i=1:m, j=1:m)
+  ij_up = ij_up[ with(ij_up, i>=j), ]
+  diag_w = diag(x=1/(2*w), nrow=dd)
+  theta_up_imj2 = (theta_up[ij_up$i, , drop=FALSE] - theta_up[ij_up$j, , drop=FALSE])^2
+  d_ij_up = bb_up[ij_up$i] * bb_up[ij_up$j] * exp(-0.5*rowSums(theta_up_imj2 %*% diag_w))
+  d_ij_up = ifelse(ij_up$i == ij_up$j, d_ij_up, 2*d_ij_up)
+  nu_ij_up = 0.5 * (theta_up[ij_up$i, , drop=FALSE] + theta_up[ij_up$j, , drop=FALSE])
+
   # write new object
   doit$theta    = theta_up
   doit$ff       = ff_up
@@ -192,10 +207,11 @@ doit_update = function(doit, design_new) with(doit, {
   doit$GG2      = GG2_up
   doit$ee       = ee_up
   doit$GGinv    = GGinv_up
+  doit$ij       = ij_up
   doit$d_ij     = d_ij_up
   doit$sum_d_ij = sum(d_ij_up)
-  doit$nu_ij    = lapply(as.data.frame(theta_up), function(tt) 
-                         0.5 * outer(tt, tt, '+'))
+  doit$nu_ij    = nu_ij_up
+
   return(doit)
 })
 
@@ -209,7 +225,7 @@ doit_update = function(doit, design_new) with(doit, {
 #' @export
 #'
 doit_expectation = function(doit) with(doit, {
-  e_theta = sapply(nu_ij, function(nu) sum(d_ij * nu) / sum_d_ij)
+  e_theta = colSums(d_ij * nu_ij) / sum_d_ij
   return(e_theta)
 })
 
@@ -236,7 +252,7 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
   theta_eval = unique(theta_eval)
   sd_ = sqrt(w[k]/2)
   ans = sapply(theta_eval, function(tt) {
-    phi_ij = dnorm(tt, nu_ij[[k]], sd_)
+    phi_ij = dnorm(tt, nu_ij[,k], sd_)
     return(sum(d_ij * phi_ij) / sum_d_ij)
   })
   return(data_frame(par=colnames(theta)[k], theta=theta_eval, dens_approx=ans))
@@ -273,17 +289,9 @@ doit_marginals = function(doit, theta_eval=NULL) {
 #'
 doit_variance = function(doit) with(doit, {
   dd = ncol(theta)
-  kk = expand.grid(ii = 1:dd, jj = 1:dd) 
-  kk = kk[with(kk, jj>=ii), ]
-  vv = sapply(1:nrow(kk), function(ll) {
-         ii_ = kk[ll, 'ii']
-         jj_ = kk[ll, 'jj']
-         sum(d_ij * nu_ij[[ ii_ ]] * nu_ij[[ jj_ ]]) / sum_d_ij
-       })
-  v_theta = matrix(0, dd, dd)
-  for (l in 1:nrow(kk)) {
-    v_theta[kk[l,'ii'], kk[l,'jj']] = v_theta[kk[l,'jj'], kk[l,'ii']] = vv[l]
-  }
+  expec = colSums(d_ij * nu_ij) / sum_d_ij
+  var_ij = lapply(1:nrow(nu_ij), function(kk) d_ij[kk] * tcrossprod(nu_ij[kk, ]))
+  v_theta = Reduce(`+`, var_ij) / sum_d_ij + diag(x=w/2, nrow=dd) - tcrossprod(expec)
   rownames(v_theta) = colnames(v_theta) = colnames(theta)
   return(v_theta)
 })
