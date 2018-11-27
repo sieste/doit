@@ -19,3 +19,10 @@ DoIt approximation of the marginal density.
 \description{
 Approximate the marginal densities of all elements of the vector `theta`.
 }
+\examples{
+design = data.frame(x=rnorm(10), y=rnorm(10))
+design$f = with(design, exp(-0.5*(x+y)^2))
+fit = doit_fit(design)
+mar_x = doit_marginals(fit)
+
+}

@@ -51,6 +51,12 @@ NULL
 #' @param optim_control A list passed to `optimize` (for 1d problems) or
 #' `optim` (if the parameter has dimension 2 or more) 
 #' @return A vector of optimal kernel widths.
+#'
+#' @examples 
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' doit_estimate_w(design)
+#'
 #' @importFrom stats optim optimize sd
 #' @export
 #'
@@ -105,6 +111,12 @@ doit_estimate_w = function(design, w_0=NULL, optim_control=NULL) {
 #' @param w vector of variances used for the Gaussian kernels. If `NULL`
 #' (the default), `w` is calculated by `doit_estimate_w`.
 #' @return An object of class `doit` used in further calculations.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#'
 #' @export
 #'
 doit_fit = function(design, w=NULL) {
@@ -162,6 +174,14 @@ doit_fit = function(design, w=NULL) {
 #' @param theta_eval A data frame of evaluation points.
 #' @return A data frame of the provided evaluation points and the corresponding
 #' mean and variance of the DoIt approximation. 
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' theta_eval = expand.grid(x=seq(-2,2,.1), y=seq(-2,2,.1))
+#' approx = doit_approx(fit, theta_eval)
+#'
 #' @export
 #'
 doit_approx = function(doit, theta_eval) with(doit, {
@@ -183,6 +203,13 @@ doit_approx = function(doit, theta_eval) with(doit, {
 #'
 #' @param doit An object of class `doit`, see function `doit_fit`.
 #' @return A parameter value.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' theta_new = doit_propose_new(fit)
+#'
 #' @export
 #'
 doit_propose_new = function(doit) with(doit, {
@@ -210,6 +237,15 @@ doit_propose_new = function(doit) with(doit, {
 #' @param doit An object of class `doit`, see function `doit_fit`.
 #' @param design_new The new design point.
 #' @return The updated `doit` object.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' theta_new = doit_propose_new(fit)
+#' theta_new$f = with(theta_new, exp(-0.5*(x+y)^2))
+#' fit = doit_update(fit, theta_new)
+#'
 #' @export
 #'
 doit_update = function(doit, design_new) with(doit, {
@@ -261,6 +297,13 @@ doit_update = function(doit, design_new) with(doit, {
 #'
 #' @param doit An object of class `doit`, see function `doit_fit`.
 #' @return Vector of expected values of the target density.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' expec = doit_expectation(fit)
+#'
 #' @export
 #'
 doit_expectation = function(doit) with(doit, {
@@ -279,6 +322,13 @@ doit_expectation = function(doit) with(doit, {
 #' distribution. If `NULL` (the default) the original design points are used.
 #' @return A data frame of the provided evaluation points and the corresponding
 #' DoIt approximation of the marginal density.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' mar_x = doit_marginal(fit, 'x')
+#'
 #' @export
 #'
 doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
@@ -307,6 +357,13 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
 #' distribution. If `NULL` (the default) the original design points are used.
 #' @return A data frame of the provided evaluation points and the corresponding
 #' DoIt approximation of the marginal density.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' mar_x = doit_marginals(fit)
+#'
 #' @export
 #'
 doit_marginals = function(doit, theta_eval=NULL) {
@@ -324,6 +381,13 @@ doit_marginals = function(doit, theta_eval=NULL) {
 #' 
 #' @param doit An object of class `doit`, see function `doit_fit`.
 #' @return (Co-)variance matrix of the target density.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' vari = doit_variance(fit)
+#'
 #' @export
 #'
 doit_variance = function(doit) with(doit, {
@@ -342,6 +406,13 @@ doit_variance = function(doit) with(doit, {
 #'
 #' @param doit An object of class `doit`, see function `doit_fit`.
 #' @return The integral of the approximated function over all `theta`.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' Z = doit_integral(fit)
+#'
 #' @export
 #'
 doit_integral = function(doit) with(doit, {
@@ -361,6 +432,14 @@ doit_integral = function(doit) with(doit, {
 #' (the default) the original design points are used.
 #' @return A data frame of the transformed evaluation points and the corresponding
 #' DoIt approximation of the marginal density.
+#'
+#' @examples
+#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design$f = with(design, exp(-0.5*(x+y)^2))
+#' fit = doit_fit(design)
+#' # distribution of x + y
+#' mar_xpy = doit_marginal_A(fit, A=matrix(c(1,1), 1, 2))
+#'
 #' @export
 #' 
 doit_marginal_A = function(doit, A=NULL, theta_eval=NULL) with(doit, {

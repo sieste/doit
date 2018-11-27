@@ -17,3 +17,10 @@ Find the point with largest estimation variance by numerical optimisation,
 using the current design point with largest leave-one-out prediction error
 as the starting point.
 }
+\examples{
+design = data.frame(x=rnorm(10), y=rnorm(10))
+design$f = with(design, exp(-0.5*(x+y)^2))
+fit = doit_fit(design)
+theta_new = doit_propose_new(fit)
+
+}

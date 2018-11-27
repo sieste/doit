@@ -18,3 +18,12 @@ The updated `doit` object.
 Update a `doit` object by adding a new design point, but without changing
 the kernel width.
 }
+\examples{
+design = data.frame(x=rnorm(10), y=rnorm(10))
+design$f = with(design, exp(-0.5*(x+y)^2))
+fit = doit_fit(design)
+theta_new = doit_propose_new(fit)
+theta_new$f = with(theta_new, exp(-0.5*(x+y)^2))
+fit = doit_update(fit, theta_new)
+
+}

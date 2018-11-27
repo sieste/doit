@@ -15,3 +15,10 @@ The integral of the approximated function over all `theta`.
 \description{
 Calculate the integral of the approximated function.
 }
+\examples{
+design = data.frame(x=rnorm(10), y=rnorm(10))
+design$f = with(design, exp(-0.5*(x+y)^2))
+fit = doit_fit(design)
+Z = doit_integral(fit)
+
+}

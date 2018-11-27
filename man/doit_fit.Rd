@@ -20,3 +20,9 @@ An object of class `doit` used in further calculations.
 \description{
 Fit the parameters of the DoIt approximation.
 }
+\examples{
+design = data.frame(x=rnorm(10), y=rnorm(10))
+design$f = with(design, exp(-0.5*(x+y)^2))
+fit = doit_fit(design)
+
+}

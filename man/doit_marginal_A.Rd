@@ -22,3 +22,11 @@ DoIt approximation of the marginal density.
 \description{
 Approximate the marginal density of a linear transformation `A %*% theta`.
 }
+\examples{
+design = data.frame(x=rnorm(10), y=rnorm(10))
+design$f = with(design, exp(-0.5*(x+y)^2))
+fit = doit_fit(design)
+# distribution of x + y
+mar_xpy = doit_marginal_A(fit, A=matrix(c(1,1), 1, 2))
+
+}

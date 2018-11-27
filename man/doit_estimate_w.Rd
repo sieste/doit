@@ -25,3 +25,9 @@ A vector of optimal kernel widths.
 Estimate the optimal kernel bandwith for the approximation by minimising the
 weighted mean squared cross validation error.
 }
+\examples{
+design = data.frame(x=rnorm(10), y=rnorm(10))
+design$f = with(design, exp(-0.5*(x+y)^2))
+doit_estimate_w(design)
+
+}

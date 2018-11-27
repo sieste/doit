@@ -19,3 +19,11 @@ mean and variance of the DoIt approximation.
 Evaluate mean and variance of the DoIt approximation of the target density
 at a number of evaluation points.
 }
+\examples{
+design = data.frame(x=rnorm(10), y=rnorm(10))
+design$f = with(design, exp(-0.5*(x+y)^2))
+fit = doit_fit(design)
+theta_eval = expand.grid(x=seq(-2,2,.1), y=seq(-2,2,.1))
+approx = doit_approx(fit, theta_eval)
+
+}
