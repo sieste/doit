@@ -4,10 +4,13 @@
 \alias{doit_propose_new}
 \title{Propose a new design point for the DoIt approximation}
 \usage{
-doit_propose_new(doit)
+doit_propose_new(doit, near = NULL)
 }
 \arguments{
 \item{doit}{An object of class `doit`, see function `doit_fit`.}
+
+\item{theta_0}{Data frame or vector. Initial value used by the optimisation
+routine. Ignored for 1d problems.}
 }
 \value{
 A parameter value.

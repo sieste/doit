@@ -202,6 +202,8 @@ doit_approx = function(doit, theta_eval) with(doit, {
 #' as the starting point.
 #'
 #' @param doit An object of class `doit`, see function `doit_fit`.
+#' @param theta_0 Data frame or vector. Initial value used by the optimisation
+#' routine. Ignored for 1d problems.
 #' @return A parameter value.
 #'
 #' @examples
@@ -212,17 +214,22 @@ doit_approx = function(doit, theta_eval) with(doit, {
 #'
 #' @export
 #'
-doit_propose_new = function(doit) with(doit, {
+doit_propose_new = function(doit, theta_0=NULL) with(doit, {
   fn = function(r) {
     gg = GGfun(r, theta, w)
     -1 * sum(bb * gg)^2 * drop(1 - gg %*% GGinv %*% gg)
   }
-  vv =  (sqrt(ff) - ee)^2 / diag(GGinv)
-  r0 = drop(theta[which.max(vv), ])
+  if (is.null(theta_0)) {
+    vv =  (sqrt(ff) - ee)^2 / diag(GGinv)
+    theta_0 = drop(theta[which.max(vv), ])
+  } else {
+    theta_0 = unlist(theta_0)
+  }
+  stopifnot(length(theta_0) == ncol(theta))
   if (ncol(theta) == 1) {
     theta_new = optimize(fn, range(theta)+c(-1,1)*diff(range(theta)))$minimum
   } else {
-    theta_new = optim(r0, fn)$par
+    theta_new = optim(theta_0, fn)$par
   }
   names(theta_new) = colnames(theta)
   return(data.frame(as.list(theta_new)))
