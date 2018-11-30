@@ -317,34 +317,41 @@ doit_expectation = function(doit) with(doit, {
 #' Approximate the marginal density of one element of `theta`.
 #' 
 #' @param doit An object of class `doit`, see function `doit_fit`.
-#' @param k column index or name of parameter whose density is calculated
-#' @param theta_eval Evaluation points at which to approximate the marginal
-#' distribution. If `NULL` (the default) the original design points are used.
+#' @param param Parameter name whose marginal density is calculated. The
+#' original design data frame must have a column with that name.  If integer,
+#' `param` is interpreted as the column index in the *original* design.
+#' @param theta_eval Data frame or matrix of parameter values at which to
+#' approximate the marginal distribution. Should have a column named `param`.
+#' If `NULL` (the default) the original design is used.
 #' @return A data frame of the provided evaluation points and the corresponding
 #' DoIt approximation of the marginal density.
 #'
 #' @examples
-#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design   = data.frame(x=rnorm(10), y=rnorm(10))
 #' design$f = with(design, exp(-0.5*(x+y)^2))
-#' fit = doit_fit(design)
-#' mar_x = doit_marginal(fit, 'x')
+#' fit      = doit_fit(design)
+#' mar_x    = doit_marginal(fit, 'x')
 #'
 #' @export
 #'
-doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
-  if (is.numeric(k)) stopifnot(k > 0, k <= ncol(theta))
-  if (is.character(k)) {
-    stopifnot(k %in% colnames(theta))
-    k = which(colnames(theta) == k)
+doit_marginal = function(doit, param, theta_eval=NULL) with(doit, {
+  stopifnot('doit' %in% class(doit), 
+            length(param) == 1)
+  if (is.numeric(param)) {
+    stopifnot(param > 0, param <= ncol(theta))
+    param = colnames(theta)[param]
   }
-  if (is.null(theta_eval)) theta_eval = theta[, k]
-  theta_eval = unique(theta_eval)
-  sd_ = sqrt(w[k]/2)
-  ans = sapply(theta_eval, function(tt) {
-    phi_ij = dnorm(tt, nu_ij[,k], sd_)
+  if (is.character(param)) {
+    stopifnot(param %in% colnames(theta))
+  }
+  if (is.null(theta_eval)) theta_eval = theta
+  theta_eval = unique(theta_eval[, param])
+  sd_ = sqrt(w[param]/2)
+  dens_ = sapply(theta_eval, function(tt) {
+    phi_ij = dnorm(tt, nu_ij[,param], sd_)
     return(sum(d_ij * phi_ij) / sum_d_ij)
   })
-  return(data.frame(par=colnames(theta)[k], theta=theta_eval, dens_approx=ans))
+  return(data.frame(par=param, theta=theta_eval, dens_approx=dens_))
 })
 
 
@@ -359,17 +366,17 @@ doit_marginal = function(doit, k, theta_eval=NULL) with(doit, {
 #' DoIt approximation of the marginal density.
 #'
 #' @examples
-#' design = data.frame(x=rnorm(10), y=rnorm(10))
+#' design   = data.frame(x=rnorm(10), y=rnorm(10))
 #' design$f = with(design, exp(-0.5*(x+y)^2))
-#' fit = doit_fit(design)
-#' mar_x = doit_marginals(fit)
+#' fit      = doit_fit(design)
+#' mar      = doit_marginals(fit)
 #'
 #' @export
 #'
 doit_marginals = function(doit, theta_eval=NULL) {
   if (!is.null(theta_eval)) theta_eval = as.matrix(theta_eval)
-  margs = lapply(colnames(doit$theta), function(kk) 
-                 doit_marginal(doit, kk, theta_eval[,kk]))
+  margs = lapply(colnames(doit$theta), function(param) 
+                 doit_marginal(doit, param, theta_eval))
   margs = do.call(rbind, margs)
   return(margs)
 }
