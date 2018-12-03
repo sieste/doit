@@ -4,7 +4,7 @@
 \alias{doit_propose_new}
 \title{Propose a new design point for the DoIt approximation}
 \usage{
-doit_propose_new(doit, near = NULL)
+doit_propose_new(doit, theta_0 = NULL)
 }
 \arguments{
 \item{doit}{An object of class `doit`, see function `doit_fit`.}
