@@ -3,6 +3,7 @@ Title: Bayesian Computation using Design of Experiments-Based Interpolation Tech
 Date: 2018-11-14
 Version: 0.1
 Author: Stefan Siegert
+Maintainer: Stefan Siegert <stefan_siegert@gmx.de>
 Authors@R: person('Stefan', 'Siegert', email='stefan_siegert@gmx.de', 
                   role=c('aut','cre'))
 Description: This package is an implementation of the design of
